@@ -1,5 +1,14 @@
-# CodeSnippets
-A collection of random functions and such. Basically a bunch of notes.
-This repo servers as a place to store sections of code or useful things to know.
+# Random Code Bits and Notes
 
-If you would like to add code here as well or would like to make any improvements, feel free to create a pull request or show off some code in discussions.
+This repo is a collection of various functions, code snippets, and notes that I find useful and tend to have to look back on because they are not used too frequetly.
+It is a place to store knowledge for future reference and share with others.
+
+## Contributing
+
+If you have some code or notes that you think would be useful to add to this collection, we welcome contributions. Simply create a pull request with your changes, and we'll review it as soon as possible.
+
+## Suggestions and Feedback
+
+We're always looking for ways to improve this repository. If you have any suggestions or feedback on how we can make it more useful, please feel free to open an issue or start a discussion.
+
+Thank you for your interest in our Random Code Bits and Notes repository!
