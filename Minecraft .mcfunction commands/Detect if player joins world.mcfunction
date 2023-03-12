@@ -9,6 +9,6 @@ execute as @a[scores={join=1..}] run function minecraft:join
 ##Join
 scoreboard players set @s join 0
 #Do whatever you want to the player. Some examples:
-tp @s ~ ~ ~
+tp @s <x> <y> <z>
 clear @s
 team join lobby
