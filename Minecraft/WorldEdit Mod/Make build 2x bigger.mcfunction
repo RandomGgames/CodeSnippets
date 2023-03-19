@@ -1,0 +1,1 @@
+deform x=x/2 y=y/2 z=z/2
