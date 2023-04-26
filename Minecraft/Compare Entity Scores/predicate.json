@@ -1,24 +1,24 @@
 {
-    "condition": "minecraft:entity_scores",
-    "entity": "this",
-    "scores": {
-      "Id": {
-        "min": {
-          "type": "minecraft:score",
-          "target": {
-            "type": "minecraft:fixed",
-            "name": "$current"
-          },
-          "score": "Id"
+  "condition": "minecraft:entity_scores",
+  "entity": "this",
+  "scores": {
+    "Id": {
+      "min": {
+        "type": "minecraft:score",
+        "target": {
+          "type": "minecraft:fixed",
+          "name": "$current"
         },
-        "max": {
-          "type": "minecraft:score",
-          "target": {
-            "type": "minecraft:fixed",
-            "name": "$current"
-          },
-          "score": "Id"
-        }
+        "score": "Id"
+      },
+      "max": {
+        "type": "minecraft:score",
+        "target": {
+          "type": "minecraft:fixed",
+          "name": "$current"
+        },
+        "score": "Id"
       }
     }
   }
+}
