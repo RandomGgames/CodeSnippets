@@ -13,6 +13,7 @@ execute as @a[tag=!Id] run function namespace:id
 execute store result score @s Id run scoreboard players add $max Id 1
 tag @s add Id
 
+
 ## summon
 # sets @s's id to $current's id 
 scoreboard players operation $current Id = @s Id
@@ -24,4 +25,4 @@ execute summon marker run function namespace:compare
 # sets the marker's id to a random player's id
 scoreboard players operation @s Id = @a[limit=1,sort=random] Id
 # checks if the marker's id matches the player's id who ran the summon function
-execute if predicate namespace:predicate run say Our scores match! 
+execute if predicate namespace:predicate run say Our scores match!
