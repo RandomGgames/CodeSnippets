@@ -26,7 +26,7 @@ if __name__ == '__main__':
     console_handler.setFormatter(logging.Formatter('%(asctime)s.%(msecs)03d %(levelname)s: %(message)s', datefmt='%Y-%m-%d %H:%M:%S'))
     logger.addHandler(console_handler)
     
-    # Set the overall logging level to DEBUG
+    # Set the overall logging level
     logger.setLevel(logging.DEBUG)
     
     # Set logging level for module
