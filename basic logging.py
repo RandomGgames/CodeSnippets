@@ -1,7 +1,7 @@
 import logging
 import os
 import sys
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
 
 def main():
     logger.debug(f'This is a debug message')
@@ -12,10 +12,12 @@ def main():
     logger.error(f'This is a error message')
 
 if __name__ == '__main__':
-    if os.path.exists('latest.log'): open('latest.log', 'w').close() # Clear latest.log if it exists
+    # Clear latest.log if it exists
+    if os.path.exists('latest.log'):
+        open('latest.log', 'w').close()
     
     logging.basicConfig(
-        level=logging.INFO,
+        level=logging.DEBUG,
         format='%(asctime)s.%(msecs)03d %(levelname)s: %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S',
         encoding='utf-8',
