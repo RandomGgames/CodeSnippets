@@ -1,7 +1,7 @@
 import logging
 import os
 import sys
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
 
 def main():
     logger.debug(f'This is a debug message')
