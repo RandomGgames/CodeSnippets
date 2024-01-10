@@ -1,7 +1,7 @@
 import logging
 import os
 from pathlib import Path
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
 
 def remove_old_log_files(logs_to_keep: int):
     """
