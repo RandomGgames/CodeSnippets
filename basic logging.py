@@ -12,26 +12,32 @@ def main():
     logger.error(f'This is a error message')
 
 if __name__ == '__main__':
-    # Clear latest.log if it exists
-    if os.path.exists('latest.log'):
-        open('latest.log', 'w').close()
-    
+    log_file = f'{os.path.basename(__file__).split(".")[0]}.log'
+    clear_latest_log = True
+    #Clear log file
+    if clear_latest_log:
+        if os.path.exists(log_file):
+            open(log_file, 'w').close()
+    #Setup logging
     logging.basicConfig(
         level=logging.DEBUG,
         format='%(asctime)s.%(msecs)03d %(levelname)s: %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S',
         encoding='utf-8',
         handlers=[
-            logging.FileHandler('latest.log', encoding='utf-8'),
+            logging.FileHandler(log_file, encoding='utf-8'),
             logging.StreamHandler(sys.stdout)
         ]
     )
-    
-    # Set logging level for module
+    #Set specific logging levels
+    pass
     logging.getLogger('sys').setLevel(logging.CRITICAL)
     
     try:
         main()
+        error = 0
     except Exception as e:
-        logger.exception(f'The script could no longer continue due to {repr(e)}.')
-        exit(1)
+        logger.warning(f'A fatal error has occured due to {repr(e)}')
+        error = 1
+    finally:
+        exit(error)
