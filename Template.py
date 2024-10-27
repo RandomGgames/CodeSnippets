@@ -20,7 +20,7 @@ def setup_logging(
         max_log_files_to_keep: typing.Union[int, None] = None,
         console_logging_level = logging.DEBUG,
         file_logging_level = logging.DEBUG,
-        log_message_format = '%(asctime)s.%(msecs)03d [%(name)s] %(levelname)s: %(message)s',
+        log_message_format = '%(asctime)s.%(msecs)03d %(levelname)s: %(message)s',
         date_format = '%Y-%m-%d %H:%M:%S'):
     # Initialize logs folder
     log_dir = os.path.dirname(log_file_path)
