@@ -58,7 +58,7 @@ def setup_logging(
     #logging.getLogger('urllib3').setLevel(logging.INFO)
 
 if __name__ == "__main__":
-    # Set up  logging
+    # Set up logging
     script_name = os.path.splitext(os.path.basename(__file__))[0]
     log_dir = f"{script_name} Logs"
     log_file_name = f'{datetime.datetime.now().strftime('%Y-%m-%d %H-%M-%S')}.log'
