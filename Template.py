@@ -1,8 +1,12 @@
 import datetime
-import logging
 import os
+import pathlib
+import socket
 import sys
+import time
 import typing
+
+import logging
 logger = logging.getLogger(__name__)
 
 """
@@ -12,15 +16,24 @@ Description/explination here
 """
 
 def main():
-    pass
+    start_time = time.perf_counter()
+    
+    # Run this at the end of function
+    logger.debug(f'Debug message in main')
+    logger.info(f'Info message in main')
+    logger.warning(f'Warning message in main')
+    
+    end_time = time.perf_counter()
+    duration = end_time - start_time
+    logger.debug(f'Took {duration:.10f}s to complete.')
 
 def setup_logging(
         logger: logging.Logger,
         log_file_path: typing.Union[str, os.fspath],
-        max_log_files_to_keep: typing.Union[int, None] = None,
+        number_of_logs_to_keep: typing.Union[int, None] = None,
         console_logging_level = logging.DEBUG,
         file_logging_level = logging.DEBUG,
-        log_message_format = '%(asctime)s.%(msecs)03d %(levelname)s: %(message)s',
+        log_message_format = '%(asctime)s.%(msecs)03d [%(name)s] [%(funcName)s] %(levelname)s: %(message)s',
         date_format = '%Y-%m-%d %H:%M:%S'):
     # Initialize logs folder
     log_dir = os.path.dirname(log_file_path)
@@ -28,10 +41,10 @@ def setup_logging(
         os.makedirs(log_dir) # Create logs dir if it does not exist
     
     # Limit # of logs in logs folder
-    if max_log_files_to_keep is not None:
+    if number_of_logs_to_keep is not None:
         log_files = sorted([f for f in os.listdir(log_dir) if f.endswith('.log')], key=lambda f: os.path.getmtime(os.path.join(log_dir, f)))
-        if len(log_files) >= max_log_files_to_keep:
-            for file in log_files[:len(log_files) - max_log_files_to_keep + 1]:
+        if len(log_files) >= number_of_logs_to_keep:
+            for file in log_files[:len(log_files) - number_of_logs_to_keep + 1]:
                 os.remove(os.path.join(log_dir, file))
     
     logger.setLevel(file_logging_level)  # Set the overall logging level
@@ -49,21 +62,18 @@ def setup_logging(
     logger.addHandler(console_handler)
     
     # Set specific logging levels
-    #logging.getLogger('can').setLevel(logging.CRITICAL)
-    #logging.getLogger('canopen').setLevel(logging.CRITICAL)
-    #logging.getLogger('pcan').setLevel(logging.CRITICAL)
-    #logging.getLogger('pyvisa').setLevel(logging.CRITICAL)
-    #logging.getLogger('requests_negotiate_sspi').setLevel(logging.INFO)
+    #logging.getLogger('requests').setLevel(logging.INFO)
     #logging.getLogger('sys').setLevel(logging.CRITICAL)
     #logging.getLogger('urllib3').setLevel(logging.INFO)
 
 if __name__ == "__main__":
-    # Set up logging
-    script_name = os.path.splitext(os.path.basename(__file__))[0]
-    log_dir = f"{script_name} Logs"
-    log_file_name = f'{datetime.datetime.now().strftime('%Y-%m-%d %H-%M-%S')}.log'
+    pc_name = socket.gethostname()
+    script_name = pathlib.Path(os.path.basename(__file__)).stem
+    log_dir = pathlib.Path(f"{script_name} Logs")
+    timestamp = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+    log_file_name = pathlib.Path(f'{timestamp}_{pc_name}.log')
     log_file_path = os.path.join(log_dir, log_file_name)
-    setup_logging(logger, log_file_path)
+    setup_logging(logger, log_file_path, number_of_logs_to_keep=10)
     
     error = 0
     try:
