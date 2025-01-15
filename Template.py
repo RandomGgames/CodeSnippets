@@ -1,3 +1,17 @@
+#from send2trash import send2trash
+#from urllib.parse import urlparse
+#import json
+#import keyboard
+#import math
+#import pyautogui
+#import requests
+#import time
+#import webbrowser
+#import win32cred
+#import xmltodict
+#import yaml
+#import zipfile
+
 import datetime
 import os
 import pathlib
@@ -18,14 +32,13 @@ Description/explination here
 def main():
     start_time = time.perf_counter()
     
-    # Run this at the end of function
     logger.debug(f'Debug message in main')
     logger.info(f'Info message in main')
     logger.warning(f'Warning message in main')
     
     end_time = time.perf_counter()
     duration = end_time - start_time
-    logger.debug(f'Took {duration:.10f}s to complete.')
+    logger.debug(f'Completed operation in {duration:.4f}s.')
 
 def setup_logging(
         logger: logging.Logger,
