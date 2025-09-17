@@ -1,9 +1,10 @@
 import inspect
 
+
 def getFunctionName():
     """
     Get the name of the current function.
-    
+
     Returns:
         str: The name of the current function.
     """
