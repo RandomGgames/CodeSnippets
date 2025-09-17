@@ -25,5 +25,6 @@ class styles:
     BOLD = "\033[1m"
     RESET = "\033[0m"
 
+
 for each in [style for style in vars(styles) if not style.startswith("__")]:
     print(f"{each}: {getattr(styles, each)}TeSt#@{styles.RESET}")
