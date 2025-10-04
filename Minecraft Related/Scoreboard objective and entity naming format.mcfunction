@@ -5,7 +5,7 @@
 # "$" a user configurable value
 # "." variable
 # "*" constant
-# "#" temporary variable
+# "#" temporary variable (not visible on sidebar)
 
 ## Sourced from:
 # https://discord.gg/QAFXFtZ
