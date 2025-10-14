@@ -1,16 +1,17 @@
 import logging
 import os
 import toml
+import typing
 logger = logging.getLogger(__name__)
 
 
-def read_config(config_path: str) -> dict:
+def read_config(config_path: str) -> dict | None:
     """
     Read the configuration file from the given path, returning the parsed contents as a dictionary.
     Returns None if the file does not exist.
     """
-    if not os.path.isfile(config_path):
-        raise ValueError(f"Config file '{config_path}' is not a valid file.")
+    if not os.path.exists(config_path):
+        return None
 
     try:
         with open(config_path) as f:
@@ -19,13 +20,10 @@ def read_config(config_path: str) -> dict:
         raise ValueError(f"Failed to read config file '{config_path}': {e}")
 
 
-def create_config(config_path: str, config: dict):
+def create_config(config_path: str, config: dict) -> None:
     """
     Create a new configuration file at the given path with the given contents.
     """
-    if not os.path.isdir(os.path.dirname(config_path)):
-        raise ValueError(f"Config file '{config_path}' is not in a valid directory.")
-
     try:
         with open(config_path, "w") as f:
             toml.dump(config, f)
@@ -33,7 +31,7 @@ def create_config(config_path: str, config: dict):
         raise ValueError(f"Failed to create config file '{config_path}': {e}")
 
 
-def validate_config(config: dict, required_keys: dict):
+def validate_config(config: dict, required_keys: dict) -> None:
     """
     Validate that the given configuration dictionary contains all of the required keys with the correct types, and does not contain any extra keys.
     Raises a ValueError if any required keys are missing, have incorrect types, or if any extra keys are present.
@@ -64,6 +62,7 @@ def load_config(config_path: str = "config.toml", create_if_not_found: bool = Tr
         "a": "a",
         "b": 2,
         "c": ["c"],
+        "d": ["d1", "d2"],
     }
     required_keys = {
         "a": (str),
