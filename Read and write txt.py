@@ -18,10 +18,10 @@ def read_text_file_lines(file_path: typing.Union[str, pathlib.Path]) -> typing.L
     """
     try:
         file_path = pathlib.Path(file_path)
+        if not file_path.parent.exists():
+            file_path.parent.mkdir(parents=True, exist_ok=True)
+            logger.debug(f"Created folder: '{file_path.parent}'")
         with open(file_path, 'r') as f:
-            if not file_path.parent.exists():
-                file_path.parent.mkdir(parents=True, exist_ok=True)
-                logger.debug(f"Created folder: '{file_path.parent}'")
             lines = [line.strip() for line in f]
         logger.info(f"Successfully read {file_path}")
         return lines
@@ -44,10 +44,10 @@ def write_text_file_lines(file_path: typing.Union[str, pathlib.Path], lines: typ
     """
     try:
         file_path = pathlib.Path(file_path)
+        if not file_path.parent.exists():
+            file_path.parent.mkdir(parents=True, exist_ok=True)
+            logger.debug(f"Created folder: '{file_path.parent}'")
         with open(file_path, 'r') as f:
-            if not file_path.parent.exists():
-                file_path.parent.mkdir(parents=True, exist_ok=True)
-                logger.debug(f"Created folder: '{file_path.parent}'")
             for line in lines:
                 f.write(line + '\n')
         logger.info(f"Successfully wrote {file_path}")
@@ -68,10 +68,10 @@ def read_text_file(file_path: typing.Union[str, pathlib.Path]) -> str:
     """
     try:
         file_path = pathlib.Path(file_path)
+        if not file_path.parent.exists():
+            file_path.parent.mkdir(parents=True, exist_ok=True)
+            logger.debug(f"Created folder: '{file_path.parent}'")
         with open(file_path, 'r') as f:
-            if not file_path.parent.exists():
-                file_path.parent.mkdir(parents=True, exist_ok=True)
-                logger.debug(f"Created folder: '{file_path.parent}'")
             text = f.read()
         logger.info(f"Successfully read {file_path}")
         return text
@@ -90,10 +90,10 @@ def write_text_file(file_path: typing.Union[str, pathlib.Path], text: str) -> No
     """
     try:
         file_path = pathlib.Path(file_path)
+        if not file_path.parent.exists():
+            file_path.parent.mkdir(parents=True, exist_ok=True)
+            logger.debug(f"Created folder: '{file_path.parent}'")
         with open(file_path, 'w') as f:
-            if not file_path.parent.exists():
-                file_path.parent.mkdir(parents=True, exist_ok=True)
-                logger.debug(f"Created folder: '{file_path.parent}'")
             f.write(text)
         logger.info(f"Successfully wrote {file_path}")
     except Exception as e:

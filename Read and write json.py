@@ -17,6 +17,10 @@ def read_json_file(file_path: typing.Union[str, pathlib.Path]) -> typing.Union[d
     typing.Union[dict, list]: The contents of the json file as a dictionary or list.
     """
     try:
+        file_path = pathlib.Path(file_path)
+        if not file_path.parent.exists():
+            file_path.parent.mkdir(parents=True, exist_ok=True)
+            logger.debug(f"Created folder: '{file_path.parent}'")
         with open(file_path, "r") as file:
             data = json.load(file)
             logger.debug(f"Successfully read json file: '{file_path}'")
@@ -41,6 +45,10 @@ def write_json_file(data: typing.Union[dict, list], file_path: typing.Union[str,
     None
     """
     try:
+        file_path = pathlib.Path(file_path)
+        if not file_path.parent.exists():
+            file_path.parent.mkdir(parents=True, exist_ok=True)
+            logger.debug(f"Created folder: '{file_path.parent}'")
         with open(file_path, "w") as file:
             json.dump(data, file, indent=4)
             logger.info(f"Successfully wrote json file: '{file_path}'")
