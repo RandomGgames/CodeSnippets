@@ -22,7 +22,7 @@ def read_text_file_lines(file_path: typing.Union[str, pathlib.Path]) -> typing.L
             file_path.parent.mkdir(parents=True, exist_ok=True)
             logger.debug(f"Created folder: '{file_path.parent}'")
         with open(file_path, 'r') as f:
-            lines = [line.strip() for line in f]
+            lines = [line.rstrip("\n\r") for line in f]
         logger.info(f"Successfully read {file_path}")
         return lines
     except Exception as e:
