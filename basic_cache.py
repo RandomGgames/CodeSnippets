@@ -6,46 +6,69 @@ logger = logging.getLogger(__name__)
 
 
 def load_cache(path: typing.Union[pathlib.Path, str] = "cache.json") -> dict:
+    """
+    Loads a cache from the given path.
+
+    Args:
+    path (typing.Union[pathlib.Path, str], optional): The path of the cache file to load. Defaults to "cache.json".
+
+    Returns:
+    dict: The loaded cache.
+    """
     logger.debug("Loading cache...")
     path = pathlib.Path(path)
     if path.exists():
         try:
-            logger.debug(f"Reading cache file...")
-            with open(path) as f:
-                cache = json.load(f)
-                logger.debug(f"Read cache file.")
+            logger.debug("Reading cache file...")
+            with open(path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                logger.debug("Read cache file.")
         except json.JSONDecodeError as e:
-            logger.error(f"Failed to load cache from {path} due to {e}. Generating blank cache...")
-            cache = {}
+            logger.error("Failed to load cache from %s due to %s. Generating blank cache...", json.dumps(str(path)), e)
+            data = {}
     else:
-        logger.debug(f"Cache file '{path}' does not exist. Generating blank cache...")
-        cache = {}
-    # cache.setdefault("files", {})
-
-    # logger.debug("Validating cache...")
-    # for file_path in list(cache["files"].keys()):
-    #     if not pathlib.Path(file_path).exists():
-    #         logger.debug(f"Removing non-existent file {file_path} from cache.")
-    #         del cache["files"][file_path]
-    # logger.debug("Cache validated successfully.")
+        logger.debug("Cache file %s does not exist. Generating blank cache...", json.dumps(str(path)))
+        data = {}
 
     logger.debug("Cache loaded.")
-    return cache
+    return data
 
 
-def save_cache(cache: dict, path: typing.Union[pathlib.Path, str] = "cache.json") -> None:
+def validate_cache(data: dict) -> None:
+    """
+    Validates the given cache data.
+
+    Args:
+    cache (dict): The cache data to validate.
+    """
+    logger.debug("Validating cache...")
+    for file_path in list(data["files"].keys()):
+        if not pathlib.Path(file_path).exists():
+            logger.debug("Removing non-existent file %s from cache.", json.dumps(str(file_path)))
+            del data["files"][file_path]
+    logger.debug("Cache validated successfully.")
+
+
+def save_cache(data: dict, path: typing.Union[pathlib.Path, str] = "cache.json") -> None:
+    """
+    Saves the given cache data to the given path.
+
+    Args:
+    data (dict): The cache data to save.
+    path (typing.Union[pathlib.Path, str], optional): The path of the cache file to save. Defaults to "cache.json".
+    """
     logger.debug("Saving cache...")
     path = pathlib.Path(path)
     try:
         cache_dir = path.parent
         if not cache_dir.exists():
             cache_dir.mkdir(parents=True)
-            logger.debug(f"Created cache directory {cache_dir}.")
-        with open(path, "w") as f:
-            json.dump(cache, f, indent=4)
-            logger.debug(f"Saved cache.")
+            logger.debug("Created cache directory %s.", json.dumps(str(cache_dir)))
+            with open(path, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=4)
+            logger.debug("Saved cache.")
     except Exception as e:
-        logger.error(f"Failed to save cache to {path} due to {e}.")
+        logger.error("Failed to save cache to %s due to %s.", json.dumps(str(path)), e)
         raise
 
 
@@ -54,6 +77,5 @@ test = {
     "a": "a",
     "b": 2,
     "c": ["c"],
-
 }
 save_cache(test)
