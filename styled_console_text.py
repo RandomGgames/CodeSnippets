@@ -2,7 +2,9 @@
 Functions for printing formatted text to the console
 """
 
+import ctypes
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -74,6 +76,17 @@ class ColorFormatter(logging.Formatter):
 
         return message
 
+
+def enable_windows_ansi():
+    """Enables ANSI escape sequences in the Windows command prompt."""
+    kernel32 = ctypes.windll.kernel32
+    # ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004
+    # 7 is the standard handle for STDOUT
+    kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
+
+
+if os.name == "nt":
+    enable_windows_ansi()
 
 # Example usage:
 # console_handler.setFormatter(ColorFormatter(message_format, datefmt=date_format))
