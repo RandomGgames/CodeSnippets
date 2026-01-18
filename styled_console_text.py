@@ -60,3 +60,19 @@ class Styles:
 
         for name in sorted(style_names):
             logger.debug(f"{name.ljust(15)}: {getattr(cls, name)}ABCabc#@!?0123{cls.RESET}")
+
+
+class ColorFormatter(logging.Formatter):
+    """Adds colors to specific keywords for console output only."""
+
+    def format(self, record):
+        message = super().format(record)
+        if "PASS" in message:
+            message = message.replace("PASS", f"{Styles.GREEN_BG}{Styles.BOLD}PASS{Styles.RESET}")
+        elif "FAIL" in message:
+            message = message.replace("FAIL", f"{Styles.RED_BG}{Styles.BOLD}FAIL{Styles.RESET}")
+
+        return message
+
+# Example usage:
+# console_handler.setFormatter(ColorFormatter(message_format, datefmt=date_format))
