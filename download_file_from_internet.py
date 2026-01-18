@@ -1,7 +1,12 @@
+"""
+Functions for downloading files from the internet
+"""
+
 import logging
 import pathlib
-import requests
 import typing
+
+import requests
 
 logger = logging.getLogger(__name__)
 
