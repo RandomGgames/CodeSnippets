@@ -341,10 +341,8 @@ measurements1 = [
     Measurement(0.564, 3, 0, Unit.gram()),
 ]
 print(f"Measurements list 1: {[str(m) for m in measurements1]}")
-average1 = PhysicsTools.average(measurements1)
-print(f"average = {average1}")
 standarddeviation1 = PhysicsTools.average_with_std_dev(measurements1)
-print(f"standard deviation = {standarddeviation1}")
+print(f"average with standard deviation = {standarddeviation1}")
 summed1 = sum(m for m in measurements1)
 print("Summed values:", summed1)
 print()
@@ -357,27 +355,23 @@ measurements2 = [
     Measurement(0.805, 3, 0, Unit.gram()),
 ]
 print(f"Measurements list 2: {[str(m) for m in measurements2]}")
-average2 = PhysicsTools.average(measurements2)
-print(f"average = {average2}")
 standarddeviation2 = PhysicsTools.average_with_std_dev(measurements2)
-print(f"standard deviation = {standarddeviation2}")
+print(f"average with standard deviation = {standarddeviation2}")
 summed2 = sum(m for m in measurements2)
 print("Summed values:", summed2)
 print()
 
-value1 = average1
+value1 = standarddeviation1
 print("value1 =", value1)
-value2 = average2
+value2 = standarddeviation2
 print("value2 =", value2)
-average_of_2 = PhysicsTools.average([value1, value2])
-print("average_of_2 =", average_of_2)
-standard_deviation_of_2 = PhysicsTools.average_with_std_dev([value1, value2])
-print("standard_deviation_of_2 =", standard_deviation_of_2)
+average_of_2 = PhysicsTools.average_with_std_dev([value1, value2])
+print("Average of 2 values with standard deviation:", average_of_2)
+sum_of_2 = value1 + value2
+print("Sum of 2 values:", sum_of_2)
+print()
 print()
 
-# --- Scenario: Measuring Material in Cups ---
-
-# 1. Measure 5 empty cups (slight variations in manufacturing)
 empty_cups = [
     Measurement(20.105, 3, 0.001, Unit.gram()),
     Measurement(20.102, 3, 0.001, Unit.gram()),
@@ -387,7 +381,6 @@ empty_cups = [
 ]
 print(f"Empty cups: {[str(m) for m in measurements1]}")
 
-# 2. Measure 5 cups filled with material
 full_cups = [
     Measurement(55.420, 3, 0.001, Unit.gram()),
     Measurement(55.395, 3, 0.001, Unit.gram()),
@@ -397,13 +390,10 @@ full_cups = [
 ]
 print(f"Full cups: {[str(m) for m in measurements1]}")
 
-# Calculate averages and their "spread" (Standard Deviation)
 avg_empty = PhysicsTools.average_with_std_dev(empty_cups)
 print(f"Average Empty Cup: {avg_empty}")
 avg_full = PhysicsTools.average_with_std_dev(full_cups)
 print(f"Average Full Cup:  {avg_full}")
 
-# Calculate the material mass
-# This uses your __sub__ method logic: sqrt(unc1^2 + unc2^2)
 material_mass = avg_full - avg_empty
 print(f"Material Mass: {material_mass}")
