@@ -59,7 +59,7 @@ class Styles:
         ]
 
         for name in sorted(style_names):
-            logger.debug(f"{name.ljust(15)}: {getattr(cls, name)}ABCabc#@!?0123{cls.RESET}")
+            print(f"{name.ljust(15)}: {getattr(cls, name)}ABCabc#@!?0123{cls.RESET}")
 
 
 class ColorFormatter(logging.Formatter):
@@ -74,5 +74,7 @@ class ColorFormatter(logging.Formatter):
 
         return message
 
+
 # Example usage:
 # console_handler.setFormatter(ColorFormatter(message_format, datefmt=date_format))
+Styles.preview_styles()
