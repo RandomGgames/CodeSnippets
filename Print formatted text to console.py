@@ -1,30 +1,62 @@
-class styles:
-    BLUE = "\033[94m"
-    BLUEBACKGROUND = "\033[44m"
-    BLUEBOLD = "\033[1;34m"
-    CYAN = "\033[96m"
-    CYANBACKGROUND = "\033[46m"
-    CYANBOLD = "\033[1;36m"
-    GRAY = "\033[90m"
-    GRAYBOLD = "\033[1;30m"
-    GREEN = "\033[92m"
-    GREENBACKGROUND = "\033[42m"
-    GREENBOLD = "\033[1;32m"
-    PURPLE = "\033[95m"
-    PURPLEBACKGROUND = "\033[45m"
-    PURPLEBOLD = "\033[1;35m"
-    RED = "\033[91m"
-    REDBACKGROUND = "\033[41m"
-    REDBOLD = "\033[1;31m"
-    WHITEBACKGROUND = "\033[7m"
-    YELLOW = "\033[33m"
-    YELLOWBACKGROUND = "\033[43m"
-    YELLOWBOLD = "\033[1;33m"
-    UNDERLINED = "\033[4m"
-    ITALIC = "\x1B[3m"
-    BOLD = "\033[1m"
+"""
+Functions for printing formatted text to the console
+"""
+
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+class Styles:
+    """Color and formatting styles"""
+    # Text Effects
     RESET = "\033[0m"
+    BOLD = "\033[1m"
+    DIM = "\033[2m"
+    ITALIC = "\x1B[3m"
+    UNDERLINED = "\033[4m"
+    BLINK = "\033[5m"
+    REVERSE = "\033[7m"
+    STRIKETHROUGH = "\033[9m"
 
+    # Standard Colors
+    BLACK = "\033[30m"
+    RED = "\033[31m"
+    GREEN = "\033[32m"
+    YELLOW = "\033[33m"
+    BLUE = "\033[34m"
+    PURPLE = "\033[35m"
+    CYAN = "\033[36m"
+    WHITE = "\033[37m"
 
-for each in [style for style in vars(styles) if not style.startswith("__")]:
-    print(f"{each}: {getattr(styles, each)}TeSt#@{styles.RESET}")
+    # Bright Colors (Your original list mostly used these)
+    GRAY = "\033[90m"
+    BRIGHT_RED = "\033[91m"
+    BRIGHT_GREEN = "\033[92m"
+    BRIGHT_YELLOW = "\033[93m"
+    BRIGHT_BLUE = "\033[94m"
+    BRIGHT_PURPLE = "\033[95m"
+    BRIGHT_CYAN = "\033[96m"
+    BRIGHT_WHITE = "\033[97m"
+
+    # Backgrounds
+    BLACK_BG = "\033[40m"
+    RED_BG = "\033[41m"
+    GREEN_BG = "\033[42m"
+    YELLOW_BG = "\033[43m"
+    BLUE_BG = "\033[44m"
+    PURPLE_BG = "\033[45m"
+    CYAN_BG = "\033[46m"
+    WHITE_BG = "\033[47m"
+
+    @classmethod
+    def preview_styles(cls):
+        """Preview all available styles, skipping methods and internal attributes."""
+        # Get all attributes that are strings and don't start with underscore
+        style_names = [
+            name for name in dir(cls)
+            if not name.startswith("_") and isinstance(getattr(cls, name), str)
+        ]
+
+        for name in sorted(style_names):
+            logger.debug(f"{name.ljust(15)}: {getattr(cls, name)}ABCabc#@!?0123{cls.RESET}")
