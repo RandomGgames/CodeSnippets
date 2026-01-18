@@ -2,6 +2,7 @@
 Functions for working with directories
 """
 
+import hashlib
 import json
 import logging
 import os
@@ -36,6 +37,23 @@ def open_working_dir() -> None:
     except OSError:
         logger.exception("Error opening working directory")
         raise
+
+
+def dir_is_empty(path: str | Path) -> bool:
+    """
+    Checks if a directory is empty.
+    """
+    path = Path(path)
+    logger.debug(f"Checking if {json.dumps(str(path))} is empty...")
+    if not os.path.isdir(path):
+        logger.debug("Path is not a directory")
+        return False
+    for _, _, files in os.walk(path):
+        if files:
+            logger.debug("Dir is not empty")
+            return False
+    logger.debug("Dir is empty")
+    return True
 
 
 def wait_for_file(path: str | Path, timeout=30):
@@ -149,4 +167,25 @@ def clean_path_string(path_str: str) -> str:
 
     except Exception:
         logger.exception(f"Failed to clean path string {json.dumps(str(path_str))}")
+        raise
+
+
+def generate_hash(file_path: str | Path, algorithm="sha256") -> str:
+    """
+    Generates a hash for a file
+
+    Args:
+    file_path (str | Path): The path of the file to generate a hash for.
+    algorithm (str): The hash algorithm to use. Default is "sha256".
+    """
+    logger.debug(f"Generating hash for {json.dumps(str(file_path))}...")
+    try:
+        with open(file_path, "rb") as f:
+            digest = hashlib.file_digest(f, algorithm)
+        hex_digest = digest.hexdigest()
+        logger.debug(f"Generated hash {json.dumps(str(hex_digest))}.")
+        return hex_digest
+
+    except Exception:
+        logger.exception(f"Failed to generate hash for {json.dumps(str(file_path))}")
         raise
