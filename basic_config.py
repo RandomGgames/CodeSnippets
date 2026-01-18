@@ -1,7 +1,10 @@
+"""
+A module for working with configuration files.
+"""
+
 import logging
 import os
-import toml
-import typing
+import tomllib
 logger = logging.getLogger(__name__)
 
 
@@ -14,10 +17,11 @@ def read_config(config_path: str) -> dict | None:
         return None
 
     try:
-        with open(config_path) as f:
-            return toml.load(f)
-    except (toml.TomlDecodeError, FileNotFoundError) as e:
-        raise ValueError(f"Failed to read config file '{config_path}': {e}")
+        with open(config_path, "rb", encoding="utf-8") as f:
+            return tomllib.load(f)
+    except tomllib.TOMLDecodeError as e:
+        logger.error(f"Failed to parse config file '{config_path}': {e}")
+        raise
 
 
 def create_config(config_path: str, config: dict) -> None:
