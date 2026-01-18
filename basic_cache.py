@@ -4,8 +4,8 @@ Cache module for saving and loading data to and from a file.
 
 import json
 import logging
-from pathlib import Path
 import typing
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
