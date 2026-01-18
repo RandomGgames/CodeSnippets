@@ -1,9 +1,0 @@
-- load_env_vars(): A quick check to ensure necessary environment variables (like API keys) are present before the script runs.
-- send_notification(title, message): Uses a library like plyer or simple system commands to send a desktop toast notification. This is great for letting you know a long script has finished while you're in another window.
-- check_internet(timeout=3): A quick function that pings a reliable site (like Google's DNS). If you're offline and the script needs the web, it can alert you gracefully instead of throwing a messy socket error.
-- get_os_info(): A simple utility to detect if you are on Windows, Mac, or Linux, and adjust paths or commands accordingly (useful if you ever move your scripts between computers).
-- to_bool(value): JSON and text files often store booleans as strings ("true", "yes", "1"). This function converts any "truthy" string into a real Python True/False.
-- clamp(value, min_val, max_val): Useful if you have config settings (like "retry_attempts" or "volume"). It ensures the number stays within a safe range.
-- sleep_with_progress(seconds): Instead of time.sleep(), which makes the window look frozen, this function prints a countdown or a series of dots so you know the script is still alive.
-- retry(func, retries=3, delay=2): A "wrapper" function. If a task (like downloading a file or reading a busy database) fails, it automatically tries again a few times before giving up.
-- combine_dicts(*dicts): Combines multiple dictionaries into one. Exception if they have overlapping keys.
