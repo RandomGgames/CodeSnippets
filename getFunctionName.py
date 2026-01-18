@@ -1,4 +1,11 @@
+"""
+A function to get the name of the current function.
+"""
+
+import logging
 import inspect
+
+logger = logging.getLogger(__name__)
 
 
 def getFunctionName():
@@ -8,4 +15,10 @@ def getFunctionName():
     Returns:
         str: The name of the current function.
     """
-    return inspect.currentframe().f_back.f_code.co_name
+    frame = inspect.currentframe()
+    if frame is not None:
+        frame = frame.f_back
+        if frame is not None:
+            return frame.f_code.co_name
+    logger.warning("Could not get function name. Returning empty string.")
+    return ""
