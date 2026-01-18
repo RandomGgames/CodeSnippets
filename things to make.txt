@@ -1,7 +1,5 @@
-- slugify(): Converts a string into a URL-friendly format (e.g., "Hello World!" becomes "hello-world")
 - load_env_vars(): A quick check to ensure necessary environment variables (like API keys) are present before the script runs.
 - send_notification(title, message): Uses a library like plyer or simple system commands to send a desktop toast notification. This is great for letting you know a long script has finished while you're in another window.
-- pause_on_error(): A function wrapped in a try/except block at the very end of your script. It ensures that if the script crashes, the console window stays open (using input("Press Enter to close...")) so you can actually read the error message before the window disappears.
 - check_internet(timeout=3): A quick function that pings a reliable site (like Google's DNS). If you're offline and the script needs the web, it can alert you gracefully instead of throwing a messy socket error.
 - get_os_info(): A simple utility to detect if you are on Windows, Mac, or Linux, and adjust paths or commands accordingly (useful if you ever move your scripts between computers).
 - to_bool(value): JSON and text files often store booleans as strings ("true", "yes", "1"). This function converts any "truthy" string into a real Python True/False.
