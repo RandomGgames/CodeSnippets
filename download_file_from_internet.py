@@ -3,40 +3,33 @@ Functions for downloading files from the internet
 """
 
 import logging
-import pathlib
 import typing
+from pathlib import Path
 
 import requests
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_URL = "https://opensource.org/licenses/MIT"  # safe, text, stable
-DEFAULT_FILE = "default.txt"
-DEFAULT_ETAG_FILE = "default_etag.txt"
 
-
-def download_if_updated(
-    url: str,
-    file_path: typing.Union[str, pathlib.Path],
-    etag_file_path: typing.Union[str, pathlib.Path],
-):
+def download_if_updated(url: str, file_path: typing.Union[str, Path], etag_file_path: typing.Union[str, Path]):
     """
     Download a file only if it has changed on the server.
     Uses ETag headers for conditional requests.
     """
-    file_path = pathlib.Path(file_path)
-    etag_file_path = pathlib.Path(etag_file_path)
+    file_path = Path(file_path)
+    etag_file_path = Path(etag_file_path)
 
     headers = {}
     if etag_file_path.exists():
-        etag = etag_file_path.read_text().strip()
+        with open(etag_file_path, "r", encoding="utf-8") as f:
+            etag = f.read().strip()
         if etag:
             headers["If-None-Match"] = etag
 
     logger.debug(f"Checking for updates to {file_path} from {url}...")
 
     try:
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=headers, timeout=30)
         if response.status_code == 304:
             logger.debug(f"{file_path} has not been modified. Using cached version.")
             return file_path
@@ -49,7 +42,8 @@ def download_if_updated(
 
         new_etag = response.headers.get("ETag", "")
         if new_etag:
-            etag_file_path.write_text(new_etag)
+            with open(etag_file_path, "w", encoding="utf-8") as f:
+                f.write(new_etag)
 
         logger.debug(f"{file_path} updated.")
         return file_path
@@ -60,3 +54,7 @@ def download_if_updated(
     except Exception as e:
         logger.error(f"Unexpected error occurred: {e}")
         raise
+
+
+# Example usage:
+# download_if_updated("https://raw.githubusercontent.com/spdx/license-list-data/refs/heads/main/text/MIT.txt", "MIT.txt", "MIT_etag.txt")
