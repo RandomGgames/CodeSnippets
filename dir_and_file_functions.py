@@ -11,6 +11,8 @@ import time
 import zipfile
 from pathlib import Path
 
+import win32com.client
+
 logger = logging.getLogger(__name__)
 
 
@@ -189,3 +191,64 @@ def generate_hash(file_path: str | Path, algorithm="sha256") -> str:
     except Exception:
         logger.exception(f"Failed to generate hash for {json.dumps(str(file_path))}")
         raise
+
+
+def get_windows_details(file_path: str | Path, max_columns: int = 512) -> dict[str, str]:
+    """
+    Return Windows 'Details' tab properties for a file using the Shell Property System.
+
+    - Windows only.
+    - Requires pywin32: pip install pywin32
+    - Keys are localized to the OS display language, matching File Explorer.
+    - Values are formatted like Explorer shows them.
+
+    Args:
+        file_path: Target file.
+        max_columns: Upper bound on columns to probe.
+
+    Returns:
+        Dict of {property_label: value} for all non-empty properties.
+    """
+    p = Path(file_path)
+
+    if not p.exists():
+        raise FileNotFoundError(p)
+
+    if os.name != "nt":
+        raise OSError("get_windows_details is only supported on Windows")
+
+    # Bind Shell
+    shell = win32com.client.Dispatch("Shell.Application")
+    folder = shell.NameSpace(str(p.parent))
+    if folder is None:
+        raise RuntimeError(f"Shell.NameSpace failed for {p.parent}")
+
+    item = folder.ParseName(p.name)
+    if item is None:
+        raise RuntimeError(f"Shell.ParseName failed for {p}")
+
+    props: dict[str, str] = {}
+
+    # Enumerate all available columns. Many indices are blank. Stop after a streak of blanks.
+    consecutive_blanks = 0
+    for i in range(max_columns):
+        header = folder.GetDetailsOf(None, i)  # column label
+        if not header:
+            consecutive_blanks += 1
+            if consecutive_blanks >= 25:
+                break
+            continue
+        consecutive_blanks = 0
+        value = folder.GetDetailsOf(item, i)
+        if isinstance(value, str):
+            value = value.strip()
+        if value:
+            props[str(header).strip()] = str(value)
+
+    logger.debug("Collected %d Windows details for %s", len(props), json.dumps(str(p)))
+    return props
+
+
+details = get_windows_details(r"C:\Users\giaopp\OneDrive - Prodrive Technologies B.V\Pictures\Camera Roll\Backup\IMG_3123.JPG")
+for k, v in details.items():
+    print(f"{k}: {v}")
