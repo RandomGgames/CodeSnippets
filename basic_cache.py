@@ -4,13 +4,14 @@ Cache module for saving and loading data to and from a file.
 
 import json
 import logging
-import typing
 from pathlib import Path
+
+from dir_and_file_functions import ensure_dir
 
 logger = logging.getLogger(__name__)
 
 
-def load_cache(path: typing.Union[Path, str] = "cache.json") -> dict:
+def load_cache(path: Path = Path("cache.json")) -> dict:
     """
     Loads a cache from the given path.
 
@@ -20,22 +21,21 @@ def load_cache(path: typing.Union[Path, str] = "cache.json") -> dict:
     Returns:
     dict: The loaded cache.
     """
-    logger.debug("Loading cache...")
     path = Path(path)
+    logger.debug(f"Loading cache file {json.dumps(str(path))}...")
+
+    data = {}
     if path.exists():
         try:
-            logger.debug("Reading cache file...")
             with open(path, "r", encoding="utf-8") as f:
                 data = json.load(f)
-                logger.debug("Read cache file.")
-        except json.JSONDecodeError as e:
-            logger.error("Failed to load cache from %s due to %s. Generating blank cache...", json.dumps(str(path)), e)
-            data = {}
+        except json.JSONDecodeError:
+            logger.exception("Failed to decode cache file. Using empty cache.")
+        except OSError:
+            logger.exception("Failed to read cache file. Using empty cache.")
     else:
-        logger.debug("Cache file %s does not exist. Generating blank cache...", json.dumps(str(path)))
-        data = {}
+        logger.info("Cache file does not exist. Using empty cache.")
 
-    logger.debug("Cache loaded.")
     return data
 
 
@@ -54,26 +54,25 @@ def validate_cache(data: dict) -> None:
     logger.debug("Cache validated successfully.")
 
 
-def save_cache(data: dict, path: typing.Union[Path, str] = "cache.json") -> None:
+def save_cache(data: dict, path: Path = Path("cache.json")) -> None:
     """
-    Saves the given cache data to the given path.
+    Saves the given cache data to the specified path.
 
     Args:
-    data (dict): The cache data to save.
-    path (typing.Union[pathlib.Path, str], optional): The path of the cache file to save. Defaults to "cache.json".
+        data (dict): The cache data to save.
+        path (str | Path, optional): The path of the cache file to save. Defaults to "cache.json".
     """
-    logger.debug("Saving cache...")
     path = Path(path)
+    logger.debug(f"Saving cache to {json.dumps(str(path))}...")
+
     try:
-        cache_dir = path.parent
-        if not cache_dir.exists():
-            cache_dir.mkdir(parents=True)
-            logger.debug("Created cache directory %s.", json.dumps(str(cache_dir)))
+        ensure_dir(path)
         with open(path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=4)
-        logger.debug("Saved cache.")
-    except Exception as e:
-        logger.error("Failed to save cache to %s due to %s.", json.dumps(str(path)), e)
+
+        logger.debug(f"Saved cache with {len(data)} entries.")
+    except Exception:
+        logger.exception("Failed to save cache.")
         raise
 
 
