@@ -29,7 +29,7 @@ def load_cache(path: Path = Path("cache.json")) -> dict:
         try:
             with open(path, "r", encoding="utf-8") as f:
                 data = json.load(f)
-                logger.debug(f"Loaded cache.")
+                logger.debug("Loaded cache.")
         except json.JSONDecodeError:
             logger.exception("Failed to decode cache file. Using empty cache.")
         except OSError:
