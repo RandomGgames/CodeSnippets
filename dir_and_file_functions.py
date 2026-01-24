@@ -17,14 +17,14 @@ import win32com.client
 logger = logging.getLogger(__name__)
 
 
-def ensure_dir(path: str | Path) -> None:
+def ensure_dir(path: Path) -> None:
     """Checks if a directory exists (using pathlib) and creates it if it doesn't."""
     # Ensure path is a directory in case it's a file
-    if os.path.isfile(path):
-        path = os.path.dirname(path)
+    path = Path(path)
+    if path.is_file():
+        path = path.parent
 
     try:
-        path = Path(path)
         if not path.exists():
             path.mkdir(parents=True)
             logger.debug(f"Created folder: {json.dumps(str(path))}")
