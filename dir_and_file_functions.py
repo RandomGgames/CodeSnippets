@@ -95,18 +95,23 @@ def get_file_data(file_path: Path | str) -> dict[str, int]:
 
 
 def sanitize_filename(name: str) -> str:
-    """Sanitize a string to be safe for use as a filename."""
+    r"""
+    Remove characters that are illegal in filenames.
+
+    Illegal characters: <>:"/\|?*
+
+    Args:
+        name: Original string.
+
+    Returns:
+        Sanitized lowercase string.
+    """
     try:
-        illegal_chars = r'[<>:"/\\|?*]'
-        sanitized = re.sub(illegal_chars, "_", name).strip()
-        sanitized = re.sub(r'_+', '_', sanitized)
-        sanitized = sanitized.replace(" ", "_")
-        if not sanitized:
-            logger.warning(f"Sanitized filename is empty. Using default: {json.dumps('file')}")
-            sanitized = "file"
-        return sanitized
-    except re.error:
-        logger.exception("Error while sanitizing filename")
+        illegal_chars_pattern = r'[<>:"/\\|?*]'
+        sanitized = re.sub(illegal_chars_pattern, "", name)
+        return sanitized.lower()
+    except re.error as e:
+        logger.exception(f"Regex error while sanitizing filename {json.dumps(name)}: {e}")
         return "file"
 
 
@@ -157,20 +162,20 @@ def get_files_list(root: str | Path) -> list[str]:
         raise
 
 
-def find_files(root: str | Path, *, recursive: bool = True, include: list[str | Pattern] | None = None, ignore: list[str | Pattern] | None = None) -> Iterable[Path]:
+def find_files(root: Path | str, *, recursive: bool = True, include: list[str | Pattern] | None = None, ignore: list[str | Pattern] | None = None) -> Iterable[Path]:
     """
-    Yield files in a directory with optional regex-based include and ignore filters.
+    Yield files in a directory filtered by regex-based include and ignore patterns.
 
     Args:
         root: Directory path to search.
         recursive: If True, search all subdirectories.
-        include: List of regex strings or compiled patterns. Only files matching at least
-            one pattern are included. If None, all files are included.
-        ignore: List of regex strings or compiled patterns. Files matching any pattern
-            are skipped.
+        include: List of regex strings or compiled patterns. Only files matching
+            at least one pattern are included. If None, all files are included.
+        ignore: List of regex strings or compiled patterns. Files matching any
+            pattern are skipped.
 
     Yields:
-        pathlib.Path objects for files that match the include/ignore criteria.
+        pathlib.Path objects for files matching the include/ignore criteria.
 
     Raises:
         FileNotFoundError: If `root` does not exist.
@@ -197,11 +202,11 @@ def find_files(root: str | Path, *, recursive: bool = True, include: list[str | 
 
         path_str = str(path)
 
-        # Ignore if matches any ignore pattern
+        # Skip files matching any ignore pattern
         if any(p.search(path_str) for p in ignore_patterns):
             continue
 
-        # Include only if matches at least one include pattern (or include_patterns empty)
+        # Include only if it matches at least one include pattern (or no include pattern)
         if include_patterns and not any(p.search(path_str) for p in include_patterns):
             continue
 
