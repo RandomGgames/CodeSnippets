@@ -10,6 +10,7 @@ import re
 import time
 import zipfile
 from pathlib import Path
+from typing import Iterable, Pattern
 
 import win32com.client
 
@@ -156,6 +157,57 @@ def get_files_list(root: str | Path) -> list[str]:
         raise
 
 
+def find_files(root: str | Path, *, recursive: bool = True, include: list[str | Pattern] | None = None, ignore: list[str | Pattern] | None = None) -> Iterable[Path]:
+    """
+    Yield files in a directory with optional regex-based include and ignore filters.
+
+    Args:
+        root: Directory path to search.
+        recursive: If True, search all subdirectories.
+        include: List of regex strings or compiled patterns. Only files matching at least
+            one pattern are included. If None, all files are included.
+        ignore: List of regex strings or compiled patterns. Files matching any pattern
+            are skipped.
+
+    Yields:
+        pathlib.Path objects for files that match the include/ignore criteria.
+
+    Raises:
+        FileNotFoundError: If `root` does not exist.
+        ValueError: If `root` is not a directory.
+    """
+    root = Path(root)
+    if not root.exists():
+        raise FileNotFoundError(f"Root path does not exist: {root}")
+    if not root.is_dir():
+        raise ValueError(f"Expected a directory, got: {root}")
+
+    # Compile regexes if needed
+    include_patterns: list[Pattern] = [
+        re.compile(p) if isinstance(p, str) else p for p in (include or [])
+    ]
+    ignore_patterns: list[Pattern] = [
+        re.compile(p) if isinstance(p, str) else p for p in (ignore or [])
+    ]
+
+    iterator = root.rglob("*") if recursive else root.glob("*")
+    for path in iterator:
+        if not path.is_file():
+            continue
+
+        path_str = str(path)
+
+        # Ignore if matches any ignore pattern
+        if any(p.search(path_str) for p in ignore_patterns):
+            continue
+
+        # Include only if matches at least one include pattern (or include_patterns empty)
+        if include_patterns and not any(p.search(path_str) for p in include_patterns):
+            continue
+
+        yield path
+
+
 def clean_path_string(path_str: str) -> str:
     """
     A function that strips extra quotes (common if you "Copy as Path" in Windows) and fixes backslashes vs. forward slashes so Python doesn't get confused.
@@ -172,25 +224,49 @@ def clean_path_string(path_str: str) -> str:
         raise
 
 
-def generate_hash(file_path: str | Path, algorithm="sha256") -> str:
+def generate_hash(file_path: str | Path, algorithm: str = "sha256") -> str:
     """
-    Generates a hash for a file
+    Generate a hexadecimal hash for a file.
+
+    Works with Python >=3.6. If running on Python >=3.11, uses
+    `hashlib.file_digest` for optimal performance. Otherwise,
+    reads the file in chunks to avoid memory issues with large files.
 
     Args:
-    file_path (str | Path): The path of the file to generate a hash for.
-    algorithm (str): The hash algorithm to use. Default is "sha256".
+        file_path: Path to the file (str or Path).
+        algorithm: Hash algorithm name (e.g., 'sha256', 'md5').
+
+    Returns:
+        Hexadecimal string of the file hash.
+
+    Raises:
+        FileNotFoundError: if the file does not exist.
+        ValueError: if the algorithm is not supported.
+        OSError: if reading the file fails.
     """
-    logger.debug(f"Generating hash for {json.dumps(str(file_path))}...")
+    file_path = Path(file_path)
+    if not file_path.is_file():
+        raise FileNotFoundError(f"File does not exist: {file_path}")
+
+    logger.debug(f"Generating hash for {json.dumps(str(file_path))} using {algorithm}...")
     try:
         with open(file_path, "rb") as f:
-            digest = hashlib.file_digest(f, algorithm)
-        hex_digest = digest.hexdigest()
-        logger.debug(f"Generated hash {json.dumps(str(hex_digest))}.")
-        return hex_digest
-
-    except Exception:
-        logger.exception(f"Failed to generate hash for {json.dumps(str(file_path))}")
+            # Python 3.11+ optimal path
+            try:
+                digest = hashlib.file_digest(f, algorithm)
+                hexd = digest.hexdigest()
+            except AttributeError:
+                # Fallback for older Python: read in chunks
+                h = hashlib.new(algorithm)
+                for chunk in iter(lambda: f.read(1024 * 1024), b""):
+                    h.update(chunk)
+                hexd = h.hexdigest()
+    except Exception as e:
+        logger.exception(f"Failed to generate hash for {file_path}: {e}")
         raise
+
+    logger.debug(f"Generated hash {json.dumps(str(hexd))} for {file_path}")
+    return hexd
 
 
 def get_windows_details(file_path: str | Path, max_columns: int = 512) -> dict[str, str]:
