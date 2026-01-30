@@ -7,6 +7,7 @@ import json
 import logging
 import os
 import re
+import send2trash
 import time
 import zipfile
 from pathlib import Path
@@ -18,18 +19,21 @@ logger = logging.getLogger(__name__)
 
 
 def ensure_dir(path: Path) -> None:
-    """Checks if a directory exists (using pathlib) and creates it if it doesn't."""
-    # Ensure path is a directory in case it's a file
-    path = Path(path)
-    if path.is_file():
+    """Ensures the parent directory for a given file path exists."""
+    path = Path(path).resolve()
+
+    # If the path doesn't exist, we assume it's a file if it has an extension.
+    # Otherwise, if it's already a file, we want its parent.
+    if path.suffix or path.is_file():
         path = path.parent
 
     try:
+        # exist_ok=True replaces the manual 'if not path.exists()' check
         if not path.exists():
-            path.mkdir(parents=True)
-            logger.debug(f"Created folder: {json.dumps(str(path))}")
-    except OSError as e:
-        logger.error(f"Error creating directory {json.dumps(str(path))}", e)
+            path.mkdir(parents=True, exist_ok=True)
+            logger.debug(f"Created {json.dumps(str(path))}")
+    except OSError:
+        logger.error(f"Error creating directory {json.dumps(str(path))}")
         raise
 
 
@@ -71,7 +75,7 @@ def wait_for_file(path: str | Path, timeout=30):
         time.sleep(1)
 
 
-def get_file_data(file_path: Path | str) -> dict[str, int]:
+def get_file_data(file_path: Path | str) -> tuple[int, int, int]:
     """
     Gets file stats safely across different Operating Systems.
     Returns times in nanoseconds.
@@ -90,8 +94,7 @@ def get_file_data(file_path: Path | str) -> dict[str, int]:
         ctime = mtime
 
     size = stat.st_size
-    logger.debug(f"File stats for {path.name}: {mtime=}, {ctime=}, {size=}")
-    return {"modified": mtime, "created": ctime, "size": size}
+    return mtime, ctime, size
 
 
 def sanitize_filename(name: str) -> str:
@@ -326,6 +329,19 @@ def get_windows_details(file_path: str | Path, max_columns: int = 512) -> dict[s
     return props
 
 
-details = get_windows_details(r"img.jpg")
-for k, v in details.items():
-    print(f"{k}: {v}")
+def send_to_recycle_bin(path: Path) -> bool:
+    """
+    Sends any duplicate files to the recycle bin
+
+    Args:
+        duplicates: A list of duplicate files
+    """
+    path = Path(path)
+
+    try:
+        send2trash.send2trash(str(path))
+        logger.info(f"Sent {json.dumps(str(path.as_posix()))} to recycle bin.")
+        return True
+    except OSError:
+        logger.error(f"Failed to send {json.dumps(str(path.as_posix()))} to recycle bin.")
+        return False
