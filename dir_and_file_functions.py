@@ -97,25 +97,34 @@ def get_file_data(file_path: Path | str) -> tuple[int, int, int]:
     return mtime, ctime, size
 
 
-def sanitize_filename(name: str) -> str:
-    r"""
-    Remove characters that are illegal in filenames.
-
-    Illegal characters: <>:"/\|?*
+def sanitize_filename(name: str, default: str = "file", max_length: int = 255) -> str:
+    """
+    Remove characters that are illegal in filenames and handle reserved names.
 
     Args:
         name: Original string.
+        default: Value to use if result is empty or reserved.
+        max_length: Maximum filename length.
 
     Returns:
         Sanitized lowercase string.
     """
+    illegal_chars_pattern = r'[<>:"/\\|?*]'
+    reserved_names = {
+        "con", "prn", "aux", "nul",
+        *(f"com{i}" for i in range(1, 10)),
+        *(f"lpt{i}" for i in range(1, 10)),
+    }
     try:
-        illegal_chars_pattern = r'[<>:"/\\|?*]'
         sanitized = re.sub(illegal_chars_pattern, "", name)
-        return sanitized.lower()
+        sanitized = sanitized.strip().replace(" ", "_").lower()
+        sanitized = sanitized[:max_length]
+        if not sanitized or sanitized in reserved_names:
+            return default
+        return sanitized
     except re.error as e:
         logger.exception(f"Regex error while sanitizing filename {json.dumps(name)}: {e}")
-        return "file"
+        return default
 
 
 def zip_files(files: list[str | Path], zip_path: str | Path, compresslevel: int = 6, error_on_missing: bool = False) -> None:
