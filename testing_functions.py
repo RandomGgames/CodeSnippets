@@ -11,89 +11,77 @@ import time
 logger = logging.getLogger()
 
 
-def is_in_tolerance(experimental_value: float, target_value: float, target_tolerance: float, name: str = "measurement") -> bool:
+def test_measurement(
+    name: str,
+    measured: float,
+    min_val: float | None = None,
+    max_val: float | None = None,
+    tolerance: float | None = None,
+    target: float | None = None,
+    units: str = "",
+) -> bool:
     """
-    Check whether a measured value falls within a specified target tolerance.
+    Log a standardized test result and automatically determine PASS/FAIL.
 
-    This function compares an experimental value against a target value
-    ± a specified tolerance. It logs a PASS/FAIL message including
-    the deviation and symbolic comparison. Useful for engineering
-    measurements, calibration checks, and automated validation.
+    The function evaluates the measured value against one of the following
+    conditions (in priority order):
 
-    Parameters
-    ----------
-    experimental_value : float
-        The value obtained from a measurement or test.
-    target_value : float
-        The expected reference value.
-    target_tolerance : float
-        The allowed deviation from the target value.
-    name : str, optional
-        Identifier used in log messages.
+    1. Range check (min_val / max_val)
+    2. Target with tolerance
+    3. Exact target match
 
     Returns
     -------
     bool
-        True if the value is within tolerance, False otherwise.
+        True if the test passed, False if it failed.
     """
 
-    deviation = round(abs(experimental_value - target_value), 2)
-    in_tolerance = (target_value - target_tolerance) <= experimental_value <= (target_value + target_tolerance)
+    status: bool | None = None
+    deviation: float | None = None
 
-    # Determine comparison symbol
-    if deviation > target_tolerance:
-        symbol = ">"
-    elif deviation < target_tolerance:
-        symbol = "<"
+    if min_val is not None or max_val is not None:
+        lower = min_val if min_val is not None else float("-inf")
+        upper = max_val if max_val is not None else float("inf")
+        status = lower <= measured <= upper
+
+    elif target is not None and tolerance is not None:
+        lower = target - tolerance
+        upper = target + tolerance
+        status = lower <= measured <= upper
+        deviation = abs(measured - target)
+
+    elif target is not None:
+        status = measured == target
+        deviation = abs(measured - target)
+
     else:
-        symbol = "="
+        logger.warning("Test '%s' has no comparison criteria.", name)
+        return False
 
-    status = "PASS" if in_tolerance else "FAIL"
+    status_str = "PASS" if status else "FAIL"
 
-    logger.info("%s | %s | Measured: %s | Target: %s±%s | Dev: %.2f %s", name, status, experimental_value, target_value, target_tolerance, deviation, symbol)
+    parts: list[str] = [name, status_str]
+    parts.append(f"Measured: {measured}{units}")
 
-    return in_tolerance
+    if target is not None and tolerance is not None:
+        parts.append(f"Target: {target}±{tolerance}{units}")
+        if deviation is not None:
+            parts.append(f"Dev: {round(deviation, 6)}{units}")
 
+    elif target is not None:
+        parts.append(f"Target: {target}{units}")
+        if deviation is not None:
+            parts.append(f"Dev: {round(deviation, 6)}{units}")
 
-def is_in_range(value: float, min_value: float, max_value: float, name: str = "value") -> bool:
-    """
-    Check whether a numeric value falls within a specified range.
+    elif min_val is not None or max_val is not None:
+        lower_str = f"{min_val}{units}" if min_val is not None else f"-inf{units}"
+        upper_str = f"{max_val}{units}" if max_val is not None else f"inf{units}"
+        parts.append(f"Range: {lower_str} to {upper_str}")
 
-    This function validates that a number is within the inclusive
-    bounds [min_value, max_value]. It logs a PASS/FAIL message
-    using the module logger and can be used for configuration
-    validation, input checking, or general numeric tests.
+    message = " | ".join(parts)
+    logger.info("%s", message)
 
-    Parameters
-    ----------
-    value : float
-        The number to check.
-    min_value : float
-        Lower bound of the allowed range.
-    max_value : float
-        Upper bound of the allowed range.
-    name : str, optional
-        Identifier used in log messages.
-
-    Returns
-    -------
-    bool
-        True if value is within the range, False otherwise.
-    """
-
-    in_range = min_value <= value <= max_value
-    deviation = 0.0
-    if value < min_value:
-        deviation = min_value - value
-    elif value > max_value:
-        deviation = value - max_value
-
-    status = "PASS" if in_range else "FAIL"
-    symbol = "<" if value < min_value else ">" if value > max_value else "="
-
-    logger.info("%s | %s | Value: %s | Range: [%s, %s] | Dev: %.2f %s", name, status, value, min_value, max_value, deviation, symbol)
-
-    return in_range
+    return status
 
 
 def _timeout_worker(queue, func, args, kwargs):
