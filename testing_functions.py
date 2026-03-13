@@ -311,3 +311,62 @@ def retry_with_timeout(
         raise last_exception
 
     return timeout_return
+
+
+def run_test_sequence() -> None:
+    """
+    Test execution framework.
+
+    Flow:
+    1. Attempt system initialization and connection (critical). If this fails, testing stops immediately.
+    2. Run test sequence. Any exception stops further tests.
+    3. If initialization succeeded, always attempt system deinitialization to return hardware to a safe state.
+
+    All steps should be designed so that if they fail, they raise an error.
+    """
+
+    initialized = False
+
+    try:
+        step = "INIT"
+        logger.info("STEP: %s | START", step)
+        # init()
+        initialized = True
+        logger.info("STEP: %s | COMPLETED", step)
+    except Exception as e:
+        logger.critical("STEP: %s | CRITICAL ERROR", step)
+        logger.critical("%s. Verify hardware is safe before continuing.", e)
+        return
+
+    try:
+        step = "CONNECT"
+        logger.info("STEP: %s | START", step)
+        # connect()
+        initialized = True
+        logger.info("STEP: %s | COMPLETED", step)
+    except Exception as e:
+        logger.error("STEP: %s | ERROR", step)
+        logger.error("%s", e)
+        return
+
+    try:
+        step = "TEST1"
+        logger.info("STEP: %s | START", step)
+        # test1()
+        logger.info("STEP: %s | COMPLETED", step)
+
+    except Exception as e:
+        logger.warning("STEP: %s | FAILURE", step)
+        logger.warning("%s", e)
+
+    # --- DEINIT PHASE ---
+    finally:
+        if initialized:
+            step = "DEINIT"
+            try:
+                logger.info("STEP: %s | START", step)
+                # deinit()
+                logger.info("STEP: %s | COMPLETED", step)
+            except Exception as e:
+                logger.critical("STEP: %s | CRITICAL ERROR", step)
+                logger.critical("%s. Verify hardware is safe before continuing.", e)
