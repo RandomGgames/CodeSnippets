@@ -2,123 +2,76 @@
 Functions for reading and writing text files
 """
 
-from pathlib import Path
-import json
 import logging
+import os
+import tempfile
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
 
-def read_text_file(file_path: Path | str) -> str:
+def read_text_file(file_path: Path, as_list: bool = False) -> str | list[str] | None:
     """
-    Reads a text file and returns its entire contents as a single string.
-    Includes error checking and logging.
+    Reads a text file as a single string or a list of lines.
 
     Args:
-    file_path (Path | str): The file path of the text file to read.
-
-    Returns:
-    str: The entire contents of the text file as a single string.
+        file_path: Path to the file.
+        as_list: If True, returns a list of strings (lines). If False, one string.
     """
+    if not file_path.exists():
+        logger.warning("File not found: %s", file_path)
+        return None
+
     try:
-        file_path = Path(file_path)
-        if not file_path.parent.exists():
-            file_path.parent.mkdir(parents=True, exist_ok=True)
-            logger.debug(f"Created folder: {json.dumps(str(file_path.parent))}")
-        with open(file_path, "r", encoding="utf-8") as f:
-            text = f.read()
-        logger.info(f"Successfully read {json.dumps(str(file_path))}")
-        return text
-    except FileNotFoundError:
-        logger.error(f"File not found: {json.dumps(str(file_path))}")
-        return ""
-    except PermissionError:
-        logger.error(f"Permission denied: {json.dumps(str(file_path))}")
-        return ""
-    except OSError as e:
-        logger.error(f"Error reading {json.dumps(str(file_path))}", e)
-        return ""
+        if as_list:
+            # .read_text().splitlines() is cleaner than .readlines()
+            # as it handles different OS line endings automatically
+            data = file_path.read_text(encoding='utf-8').splitlines()
+        else:
+            data = file_path.read_text(encoding='utf-8')
+
+        logger.info("Successfully read text from %s", file_path)
+        return data
+
+    except Exception as e:
+        logger.error("Unexpected error reading %s: %s", file_path, e)
+        return None
 
 
-def read_text_file_lines(file_path: Path | str) -> list[str]:
+def write_text_file(file_path: Path, data: str | list[str]) -> bool:
     """
-    Reads a text file and returns a list of strings with the \n characters at the end of each line removed.
-    Includes error checking and logging.
-
-    Args:
-    file_path (Path | str): The file path of the text file to read.
-
-    Returns:
-    list[str]: A list of strings with the \n characters at the end of each line removed.
+    Writes a string or a list of strings to a text file atomically.
     """
+    file_path.parent.mkdir(parents=True, exist_ok=True)
+
+    temp_file_path: Path | None = None
     try:
-        file_path = Path(file_path)
-        if not file_path.parent.exists():
-            file_path.parent.mkdir(parents=True, exist_ok=True)
-            logger.debug(f"Created folder: {json.dumps(str(file_path.parent))}")
-        with open(file_path, "r", encoding="utf-8") as f:
-            text_lines = [line.rstrip("\n\r") for line in f]
-        logger.info(f"Successfully read {json.dumps(str(file_path))}")
-        return text_lines
-    except FileNotFoundError:
-        logger.error(f"File not found: {json.dumps(str(file_path))}")
-        return []
-    except PermissionError:
-        logger.error(f"Permission denied: {json.dumps(str(file_path))}")
-        return []
-    except OSError as e:
-        logger.error(f"Error reading {json.dumps(str(file_path))}", e)
-        return []
+        with tempfile.NamedTemporaryFile(mode='w', dir=str(file_path.parent), encoding='utf-8', suffix=".tmp", delete=False) as tf:
+            temp_file_path = Path(tf.name)
+            logger.info("Starting atomic text write to %s", file_path)
 
+            if isinstance(data, list):
+                # Add newlines if they aren't already there to ensure
+                # list items don't all end up on one line
+                tf.writelines(line if line.endswith('\n') else f"{line}\n" for line in data)
+            else:
+                tf.write(data)
 
-def write_text_file(file_path: Path | str, text: str) -> None:
-    """
-    Writes a string to a text file. Includes error checking and logging.
+            tf.flush()
+            os.fsync(tf.fileno())
 
-    Args:
-    file_path (Path | str): The file path of the text file to write.
-    text (str): A string to write to the text file.
-    """
-    try:
-        file_path = Path(file_path)
-        if not file_path.parent.exists():
-            file_path.parent.mkdir(parents=True, exist_ok=True)
-            logger.debug(f"Created folder: {json.dumps(str(file_path.parent))}")
-        with open(file_path, "w", encoding="utf-8") as f:
-            f.write(text)
-        logger.info(f"Successfully wrote {json.dumps(str(file_path))}")
-    except FileNotFoundError:
-        logger.error(f"File not found: {json.dumps(str(file_path))}")
-    except PermissionError:
-        logger.error(f"Permission denied: {json.dumps(str(file_path))}")
-    except OSError as e:
-        logger.error(f"Error writing {json.dumps(str(file_path))}", e)
+        temp_file_path.replace(file_path)
+        logger.info("Successfully saved text to %s", file_path)
+        return True
 
+    except (KeyboardInterrupt, SystemExit):
+        logger.error("Write interrupted for %s. Cleaning up.", file_path)
+        if temp_file_path and temp_file_path.exists():
+            temp_file_path.unlink()
+        raise
 
-def write_text_file_lines(file_path: Path | str, lines: list[str]) -> None:
-    """
-    Writes a list of strings to a text file, with each string on a new line.
-    Includes error checking and logging.
-
-    Args:
-    file_path (Path | str): The file path of the text file to write.
-    lines (list[str]): A list of strings to write to the text file.
-
-    Returns:
-    None
-    """
-    try:
-        file_path = Path(file_path)
-        if not file_path.parent.exists():
-            file_path.parent.mkdir(parents=True, exist_ok=True)
-            logger.debug(f"Created folder: {json.dumps(str(file_path.parent))}")
-        with open(file_path, "w", encoding="utf-8") as f:
-            for line in lines:
-                f.write(line + "\n")
-        logger.info(f"Successfully wrote {json.dumps(str(file_path))}")
-    except FileNotFoundError:
-        logger.error(f"File not found: {json.dumps(str(file_path))}")
-    except PermissionError:
-        logger.error(f"Permission denied: {json.dumps(str(file_path))}")
-    except OSError as e:
-        logger.error(f"Error writing {json.dumps(str(file_path))}", e)
+    except Exception as e:
+        logger.error("Failed to write text to %s: %s", file_path, e)
+        if temp_file_path and temp_file_path.exists():
+            temp_file_path.unlink()
+        return False
