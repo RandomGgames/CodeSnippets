@@ -37,14 +37,18 @@ def write_json_file(file_path: Path, data: object) -> bool:
     """
     Writes data to a JSON file atomically.
     """
-    file_path.parent.mkdir(parents=True, exist_ok=True)
+    file_path = Path(file_path).absolute()
+
+    if not file_path.parent.exists():
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+        logger.debug("Created %s", json.dumps(str(file_path.parent.as_posix())))
 
     temp_file_path: Path | None = None
     try:
         with tempfile.NamedTemporaryFile(mode='w', dir=str(file_path.parent), encoding='utf-8', suffix=".tmp", delete=False) as tf:
             # Get file path from tempfile object
             temp_file_path = Path(tf.name)
-            logger.info("Starting atomic write to %s", json.dumps(str(file_path)))
+            logger.debug("Starting atomic write to %s", json.dumps(str(file_path)))
             json.dump(data, tf, indent=4)
             tf.flush()
             os.fsync(tf.fileno())
