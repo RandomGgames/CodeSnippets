@@ -1,12 +1,10 @@
-"""Measurements"""
+"""
+A module for working with measurements.
 
-from decimal import Decimal, ROUND_HALF_UP
-from collections import Counter
-import re
-
+WIP
+"""
 
 from decimal import Decimal, ROUND_HALF_UP, Context, setcontext
-from collections import Counter
 import re
 
 # Set high precision context to prevent InvalidOperation during complex math
