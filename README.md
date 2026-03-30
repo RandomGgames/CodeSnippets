@@ -1,4 +1,4 @@
-# Random Code Bits and Notes
+# Code Snippets
 
 This repo is a collection of various functions, code snippets, and notes that I find useful and use as a resource so I don't have to look it up again and again online.
 It is a place to store knowledge for future reference and share with others!

@@ -21,7 +21,7 @@ def extract_url_domain(url):
         str: The domain name of the given URL.
     """
 
-    logging.debug(f"Getting domain from {json.dumps(str(url))}")
+    logging.debug("Getting domain from %s", json.dumps(str(url)))
     try:
         if not isinstance(url, str):
             logging.exception("Input is not a string.")
@@ -34,9 +34,9 @@ def extract_url_domain(url):
             domain = domain[1]
         else:
             domain = domain[0]
-        logging.debug(f"Got domain {json.dumps(str(domain))}")
+        logging.debug("Got domain %s", json.dumps(str(domain)))
         return domain
 
     except (ValueError, TypeError) as e:
-        logging.exception(f"Error extracting domain from {json.dumps(str(url))}", exc_info=e)
+        logging.error("Error extracting domain from %s: %s", json.dumps(str(url)), e)
         return None

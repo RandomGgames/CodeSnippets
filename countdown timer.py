@@ -1,3 +1,5 @@
+"""Simple countdown timer"""
+
 import time
 
 
@@ -21,7 +23,6 @@ def countdown(timer: int, timer_message_prefix: str = '', timer_message_suffix: 
         time.sleep(1)
     remove_message = ' ' * max_str_length
     print(remove_message, end='\r')
-    return max_str_length
 
 
 countdown(3)
