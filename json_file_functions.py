@@ -33,7 +33,7 @@ def read_json_file(file_path: Path) -> dict | list | None:
         return None
 
 
-def write_json_file(file_path: Path, data: object) -> bool:
+def write_json_file(file_path: Path, data: dict | list) -> bool:
     """
     Writes data to a JSON file atomically.
     """
@@ -46,7 +46,7 @@ def write_json_file(file_path: Path, data: object) -> bool:
     temp_file_path: Path | None = None
     try:
         with tempfile.NamedTemporaryFile(mode='w', dir=str(file_path.parent), encoding='utf-8', suffix=".tmp", delete=False) as tf:
-            # Get file path from tempfile object
+            # Get file path from tempfile instance
             temp_file_path = Path(tf.name)
             logger.debug("Starting atomic write to %s", json.dumps(str(file_path)))
             json.dump(data, tf, indent=4)
@@ -86,6 +86,6 @@ def load_cache(file_path: Path) -> dict | list | None:
     return read_json_file(file_path)
 
 
-def save_cache(file_path: Path, cache_data: object) -> bool:
+def save_cache(file_path: Path, cache_data: dict | list) -> bool:
     """Alias for write_json_file, specifically for cache files."""
     return write_json_file(file_path, cache_data)
