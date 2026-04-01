@@ -1,7 +1,7 @@
 """
 Track Logs
 
-A log crawler designed to monitor multiple directories  for specific file patterns.
+A log crawler designed to monitor multiple directories for specific file patterns.
 It tracks file read positions and modification timestamps to ensure that only
 new or modified content is processed across script restarts.
 
@@ -105,7 +105,9 @@ def get_updated_files(target_dirs, cache):
                     key = str(file_path.resolve())
                     stat = file_path.stat()
 
-                    last_offset, last_mtime = cache.get(key, [0, 0])
+                    entry = cache.get(key, {})
+                    last_offset = entry.get("offset", 0)  # Bytes offset from beginning of file
+                    last_mtime = entry.get("mtime", 0)  # Unix epoch time
 
                     # Detection logic for Appends, Swaps, and Shrinks
                     if stat.st_mtime > last_mtime or stat.st_size != last_offset:
@@ -124,7 +126,9 @@ def get_new_lines(file_path, cache):
         stat = file_path.stat()
         current_size = stat.st_size
         current_mtime = stat.st_mtime
-        last_offset, last_mtime = cache.get(key, [0, 0])
+        entry = cache.get(key, {})
+        last_offset = entry.get("offset", 0)  # Bytes offset from beginning of file
+        last_mtime = entry.get("mtime", 0)  # Unix epoch time
 
         # Determine if we need a full re-read
         should_re_read = (
@@ -154,7 +158,10 @@ def get_new_lines(file_path, cache):
 
         # 3. ONLY update the cache once all lines have been successfully yielded
         # This ensures main()'s 'update_cache' logic remains accurate.
-        cache[key] = [final_offset, current_mtime]
+        cache[key] = {
+            "offset": final_offset,  # Bytes offset from beginning of file
+            "mtime": current_mtime,  # Unix epoch time
+        }
 
     except (PermissionError, FileNotFoundError, OSError):
         # On error, we return without updating the cache, triggering a retry.
