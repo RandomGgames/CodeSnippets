@@ -127,33 +127,33 @@ def sanitize_filename(name: str, default: str = "file", max_length: int = 255) -
         return default
 
 
-def zip_files(files: list[str | Path], zip_path: str | Path, compresslevel: int = 6, error_on_missing: bool = False) -> None:
+def create_zip(paths: list[Path], zip_path: Path, compresslevel: int = 6) -> None:
     """
-    Create a zip archive from a list of files. Any files that don't exist are skipped.
-
-    Args:
-    files (list[str | Path]): A list of files to add to the zip archive.
-    zip_path (str | Path): The path of the zip archive to create.
-    compresslevel (int): The compression level to use when creating the zip archive.
-        Level 0 is no compression, and level 9 is maximum compression.
-    error_on_missing (bool): If True, raise a FileNotFoundError if any of the files in the list do not exist.
+    Create a zip archive from a list of files and folders.
     """
     try:
-        paths = [Path(p) for p in files]
-        zip_path = Path(zip_path)
+        missing_paths = [p for p in paths if not p.exists()]
+        if missing_paths:
+            raise FileNotFoundError(f"Missing paths: {[str(p) for p in missing_paths]}")
 
-        existing_paths = [path for path in paths if path.exists()]
-        if error_on_missing and len(existing_paths) != len(paths):
-            raise FileNotFoundError(f"The following files were not found: {[str(path) for path in paths if not path.exists()]}")
+        if not zip_path.parent.exists():
+            zip_path.parent.mkdir(parents=True, exist_ok=True)
+            logger.info("Created %s", json.dumps(str(zip_path.parent.as_posix())))
 
         with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=compresslevel) as zipf:
-            for path in existing_paths:
-                zipf.write(path, arcname=path.name)
+            for path in paths:
+                if path.is_file():
+                    zipf.write(path, arcname=path.name)
+                    continue
 
-        logger.info("Created release archive: %s", zip_path)
+                for sub in path.rglob("*"):
+                    if sub.is_file():
+                        zipf.write(sub, arcname=str(sub.relative_to(path.parent)))
+
+        logger.info("Created %s", json.dumps(str(zip_path.as_posix())))
 
     except Exception:
-        logger.exception("Failed to create zip archive %s", json.dumps(str(zip_path)))
+        logger.exception("Failed to create zip archive %s", json.dumps(str(zip_path.as_posix())))
         raise
 
 
