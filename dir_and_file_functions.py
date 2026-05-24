@@ -8,6 +8,7 @@ import logging
 import os
 import re
 import send2trash
+import tempfile
 import time
 import zipfile
 from pathlib import Path
@@ -127,33 +128,61 @@ def sanitize_filename(name: str, default: str = "file", max_length: int = 255) -
         return default
 
 
-def create_zip(paths: list[Path], zip_path: Path, compresslevel: int = 6) -> None:
+def zip_files(files: list[Path], zip_path: Path, compresslevel: int = 6, error_on_missing: bool = False, overwrite: bool = True) -> None:
     """
-    Create a zip archive from a list of files and folders.
+    Create a zip archive from a list of Path objects safely using a temporary file.
+
+    Accepts paths to files or directories. Directories are added recursively, 
+    preserving their internal structures under their top-level folder name.
     """
+    zip_path = Path(zip_path)
+
+    if zip_path.exists() and not overwrite:
+        raise FileExistsError(f"The destination file already exists and overwrite is disabled: {zip_path}")
+
+    zip_path.parent.mkdir(parents=True, exist_ok=True)
+
+    temp_file = None
     try:
-        missing_paths = [p for p in paths if not p.exists()]
-        if missing_paths:
-            raise FileNotFoundError(f"Missing paths: {[str(p) for p in missing_paths]}")
+        with tempfile.NamedTemporaryFile(
+            dir=zip_path.parent,
+            prefix=f"{zip_path.name}.tmp_",
+            delete=False
+        ) as tmp_f:
+            temp_file = Path(tmp_f.name)
 
-        if not zip_path.parent.exists():
-            zip_path.parent.mkdir(parents=True, exist_ok=True)
-            logger.info("Created %s", json.dumps(str(zip_path.parent.as_posix())))
+            with zipfile.ZipFile(tmp_f, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=compresslevel) as zipf:
+                for src_path in files:
+                    src_path = Path(src_path)
 
-        with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=compresslevel) as zipf:
-            for path in paths:
-                if path.is_file():
-                    zipf.write(path, arcname=path.name)
-                    continue
+                    if not src_path.exists():
+                        if error_on_missing:
+                            raise FileNotFoundError(f"Source path missing: {src_path}")
+                        continue
 
-                for sub in path.rglob("*"):
-                    if sub.is_file():
-                        zipf.write(sub, arcname=str(sub.relative_to(path.parent)))
+                    if src_path.is_dir():
+                        base_folder_name = src_path.name
 
-        logger.info("Created %s", json.dumps(str(zip_path.as_posix())))
+                        for item in src_path.rglob("*"):
+                            if item.is_file():
+                                # Reconstruct the path relative to the parent of the target directory
+                                relative_path = item.relative_to(src_path)
+                                item_arcname = Path(base_folder_name) / relative_path
+                                zipf.write(item, arcname=str(item_arcname))
+
+                    else:
+                        zipf.write(src_path, arcname=src_path.name)
+
+        os.replace(temp_file, zip_path)
+        logger.info("Successfully created archive: %s", zip_path)
 
     except Exception:
-        logger.exception("Failed to create zip archive %s", json.dumps(str(zip_path.as_posix())))
+        if temp_file and temp_file.exists():
+            try:
+                temp_file.unlink()
+            except OSError:
+                pass
+        logger.exception("Failed to create zip archive %s", zip_path)
         raise
 
 
