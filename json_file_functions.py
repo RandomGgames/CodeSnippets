@@ -11,26 +11,25 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 
-def read_json_file(file_path: Path) -> dict | list | None:
+def read_json_file(file_path: Path) -> dict | list:
     """
     Safely reads and parses a JSON file.
     """
     if not file_path.exists():
-        logger.warning("File not found: %s", json.dumps(str(file_path)))
-        return None
+        raise FileNotFoundError(file_path)
 
     try:
         data = json.loads(file_path.read_text(encoding='utf-8'))
-        logger.info("Successfully read data from %s", json.dumps(str(file_path)))
+        logger.info("Successfully read data from %s", file_path)
         return data
 
     except json.JSONDecodeError as e:
-        logger.error("Invalid JSON format in %s: %s", json.dumps(str(file_path)), e)
-        return None
+        logger.error("Invalid JSON format in %s", file_path)
+        raise e
 
     except Exception as e:
-        logger.error("Unexpected error reading %s: %s", json.dumps(str(file_path)), e)
-        return None
+        logger.error("Unable to read %s", file_path)
+        raise e
 
 
 def write_json_file(file_path: Path, data: object) -> bool:
@@ -44,24 +43,24 @@ def write_json_file(file_path: Path, data: object) -> bool:
         with tempfile.NamedTemporaryFile(mode='w', dir=str(file_path.parent), encoding='utf-8', suffix=".tmp", delete=False) as tf:
             # Get file path from tempfile object
             temp_file_path = Path(tf.name)
-            logger.info("Starting atomic write to %s", json.dumps(str(file_path)))
+            logger.info("Starting atomic write to %s", file_path)
             json.dump(data, tf, indent=4)
             tf.flush()
             os.fsync(tf.fileno())
 
         # Atomic swap
         temp_file_path.replace(file_path)
-        logger.info("Successfully saved to %s", json.dumps(str(file_path)))
+        logger.info("Successfully saved to %s", file_path)
         return True
 
     except (KeyboardInterrupt, SystemExit):
-        logger.error("Write interrupted for %s. Cleaning up.", json.dumps(str(file_path)))
+        logger.error("Write interrupted for %s. Cleaning up.", file_path)
         if temp_file_path and temp_file_path.exists():
             temp_file_path.unlink()
         raise
 
     except Exception as e:
-        logger.error("Failed to write to %s: %s", json.dumps(str(file_path)), e)
+        logger.error("Failed to write to %s: %s", file_path, e)
         if temp_file_path and temp_file_path.exists():
             temp_file_path.unlink()
         return False
