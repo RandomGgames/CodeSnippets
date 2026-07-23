@@ -7,13 +7,13 @@ import json
 import logging
 import os
 import re
-import send2trash
-import tempfile
 import time
+import tempfile
 import zipfile
 from pathlib import Path
 from typing import Iterable, Pattern
 
+import send2trash
 import win32com.client
 
 logger = logging.getLogger(__name__)
@@ -32,9 +32,9 @@ def ensure_dir(path: Path) -> None:
         # exist_ok=True replaces the manual 'if not path.exists()' check
         if not path.exists():
             path.mkdir(parents=True, exist_ok=True)
-            logger.debug("Created %s", json.dumps(str(path)))
-    except OSError as e:
-        logger.error("Error creating directory %s: %s", json.dumps(str(path)), e)
+            logger.debug("Created %s", path)
+    except OSError:
+        logger.error("Error creating directory %s", path)
         raise
 
 
@@ -52,7 +52,7 @@ def dir_is_empty(path: str | Path) -> bool:
     Checks if a directory is empty.
     """
     path = Path(path)
-    logger.debug("Checking if %s is empty...", json.dumps(str(path)))
+    logger.debug("Checking if %s is empty...", path)
     if not os.path.isdir(path):
         logger.debug("Path is not a directory")
         return False
@@ -124,7 +124,7 @@ def sanitize_filename(name: str, default: str = "file", max_length: int = 255) -
             return default
         return sanitized
     except re.error as e:
-        logger.exception("Regex error while sanitizing filename %s: %s", json.dumps(name), e)
+        logger.exception("Regex error while sanitizing filename %s", name)
         return default
 
 
@@ -177,11 +177,6 @@ def zip_files(files: list[Path], zip_path: Path, compresslevel: int = 6, error_o
         logger.info("Successfully created archive: %s", zip_path)
 
     except Exception:
-        if temp_file and temp_file.exists():
-            try:
-                temp_file.unlink()
-            except OSError:
-                pass
         logger.exception("Failed to create zip archive %s", zip_path)
         raise
 
@@ -199,7 +194,7 @@ def get_files_list(root: str | Path) -> list[str]:
         return files
 
     except Exception:
-        logger.exception("Failed to get files list for %s", json.dumps(str(root)))
+        logger.exception("Failed to get files list for %s", root)
         raise
 
 
@@ -262,11 +257,11 @@ def clean_path_string(path_str: str) -> str:
         new_str = path_str.strip('"').replace("\\", "/")
         return new_str
     except AttributeError:
-        logger.exception("Failed to clean path string %s", json.dumps(str(path_str)))
+        logger.exception("Failed to clean path string %s", path_str)
         raise
 
     except Exception:
-        logger.exception("Failed to clean path string %s", json.dumps(str(path_str)))
+        logger.exception("Failed to clean path string %s", path_str)
         raise
 
 
@@ -294,7 +289,7 @@ def generate_hash(file_path: str | Path, algorithm: str = "sha256") -> str:
     if not file_path.is_file():
         raise FileNotFoundError(f"File does not exist: {file_path}")
 
-    logger.debug("Generating hash for %s using %s...", json.dumps(str(file_path)), algorithm)
+    logger.debug("Generating hash for %s using %s...", file_path, algorithm)
     try:
         with open(file_path, "rb") as f:
             # Python 3.11+ optimal path
@@ -308,10 +303,10 @@ def generate_hash(file_path: str | Path, algorithm: str = "sha256") -> str:
                     h.update(chunk)
                 hexd = h.hexdigest()
     except Exception as e:
-        logger.exception("Failed to generate hash for %s: %s", file_path, e)
+        logger.exception("Failed to generate hash for {file_path}: {e}")
         raise
 
-    logger.debug("Generated hash %s for %s", json.dumps(str(hexd)), file_path)
+    logger.debug("Generated hash %s for %s", hexd, file_path)
     return hexd
 
 
@@ -378,8 +373,8 @@ def send_to_recycle_bin(path: Path) -> bool:
 
     try:
         send2trash.send2trash(str(path))
-        logger.info("Sent %s to recycle bin.", json.dumps(str(path.as_posix())))
+        logger.info("Sent %s to recycle bin.", path)
         return True
-    except OSError as e:
-        logger.error("Failed to send %s to recycle bin: %s", json.dumps(str(path.as_posix())), e)
+    except OSError:
+        logger.error("Failed to send %s to recycle bin.", path)
         return False

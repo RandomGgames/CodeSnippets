@@ -1,4 +1,6 @@
-"""Simple countdown timer"""
+"""
+Simple countdown timer
+"""
 
 import time
 

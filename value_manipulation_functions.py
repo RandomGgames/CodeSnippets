@@ -17,7 +17,7 @@ def clamp_value(value, min_value, max_value):
 
     # Log only if clamped
     if value != original_value:
-        logger.info(f"Clamped value from {original_value} to {value} (range: [{min_value}, {max_value}])")
+        logger.info("Clamped value from %s to %s (range: [%s, %s])", original_value, value, min_value, max_value)
 
     return value
 

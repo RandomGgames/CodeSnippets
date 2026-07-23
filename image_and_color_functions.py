@@ -142,11 +142,11 @@ def relative_luminance(image: Image.Image) -> float:
 
     r, g, b = average_rgb(image)
 
-    R = srgb_to_linear(r)
-    G = srgb_to_linear(g)
-    B = srgb_to_linear(b)
+    r = srgb_to_linear(r)
+    g = srgb_to_linear(g)
+    b = srgb_to_linear(b)
 
-    y = 0.2126 * R + 0.7152 * G + 0.0722 * B
+    y = 0.2126 * r + 0.7152 * g + 0.0722 * b
     logger.debug("Relative luminance: %.4f", y)
     return y
 
@@ -197,10 +197,10 @@ def colorfulness(image: Image.Image) -> float:
     image = _validate_image(image)
     arr = np.asarray(image.convert("RGB"), dtype=np.float32)
 
-    R, G, B = arr[..., 0], arr[..., 1], arr[..., 2]
+    r, g, b = arr[..., 0], arr[..., 1], arr[..., 2]
 
-    rg = R - G
-    yb = 0.5 * (R + G) - B
+    rg = r - g
+    yb = 0.5 * (r + g) - b
 
     std_rg = rg.std()
     std_yb = yb.std()
