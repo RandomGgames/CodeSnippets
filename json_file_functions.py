@@ -59,15 +59,18 @@ def write_json_file(file_path: Path, data: dict | list | str | int | float | boo
 
     except (KeyboardInterrupt, SystemExit):
         logger.error("Write interrupted for %s. Cleaning up.", file_path)
-        if temp_file_path and temp_file_path.exists():
-            temp_file_path.unlink()
         raise
 
     except Exception as e:
         logger.error("Failed to write to %s: %s", file_path, e)
-        if temp_file_path and temp_file_path.exists():
-            temp_file_path.unlink()
         return False
+
+    finally:
+        if temp_file_path is not None:
+            try:
+                temp_file_path.unlink(missing_ok=True)
+            except OSError:
+                logger.exception("Failed to clean up temporary file %s", temp_file_path)
 
 
 def load_config(file_path: Path, *, encoding: str = "utf-8") -> dict | list | str | int | float | bool | None:
