@@ -20,15 +20,15 @@ def read_json_file(file_path: Path, *, encoding: str = "utf-8") -> dict | list |
 
     try:
         data = json.loads(file_path.read_text(encoding=encoding))
-        logger.info("Successfully read data from %s", file_path)
+        # logger.info("Successfully read data from %s", file_path)
         return data
 
     except json.JSONDecodeError as e:
-        logger.error("Invalid JSON format in %s", file_path)
+        # logger.error("Invalid JSON format in %s", file_path)
         raise e
 
     except Exception as e:
-        logger.error("Unable to read %s", file_path)
+        # logger.error("Unable to read %s", file_path)
         raise e
 
 
@@ -47,14 +47,14 @@ def write_json_file(file_path: Path, data: dict | list | str | int | float | boo
         with tempfile.NamedTemporaryFile(mode='w', dir=str(file_path.parent), encoding=encoding, suffix=".tmp", delete=False) as tf:
             # Get file path from tempfile instance
             temp_file_path = Path(tf.name)
-            logger.info("Starting atomic write to %s", file_path)
+            # logger.info("Starting atomic write to %s", file_path)
             json.dump(data, tf, indent=indent, ensure_ascii=ensure_ascii)
             tf.flush()
             os.fsync(tf.fileno())
 
         # Atomic swap
         temp_file_path.replace(file_path)
-        logger.info("Successfully saved to %s", file_path)
+        # logger.info("Successfully saved to %s", file_path)
         return True
 
     except (KeyboardInterrupt, SystemExit):
