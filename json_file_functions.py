@@ -11,7 +11,7 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 
-def read_json_file(file_path: Path) -> dict | list:
+def read_json_file(file_path: Path, *, encoding: str = "utf-8") -> dict | list | str | int | float | bool | None:
     """
     Safely reads and parses a JSON file.
     """
@@ -19,7 +19,7 @@ def read_json_file(file_path: Path) -> dict | list:
         raise FileNotFoundError(file_path)
 
     try:
-        data = json.loads(file_path.read_text(encoding='utf-8'))
+        data = json.loads(file_path.read_text(encoding=encoding))
         logger.info("Successfully read data from %s", file_path)
         return data
 
@@ -32,7 +32,7 @@ def read_json_file(file_path: Path) -> dict | list:
         raise e
 
 
-def write_json_file(file_path: Path, data: dict | list) -> bool:
+def write_json_file(file_path: Path, data: dict | list | str | int | float | bool | None, *, encoding: str = "utf-8", indent: int | str | None = 4, ensure_ascii: bool = True) -> bool:
     """
     Writes data to a JSON file atomically.
     """
@@ -44,11 +44,11 @@ def write_json_file(file_path: Path, data: dict | list) -> bool:
 
     temp_file_path: Path | None = None
     try:
-        with tempfile.NamedTemporaryFile(mode='w', dir=str(file_path.parent), encoding='utf-8', suffix=".tmp", delete=False) as tf:
+        with tempfile.NamedTemporaryFile(mode='w', dir=str(file_path.parent), encoding=encoding, suffix=".tmp", delete=False) as tf:
             # Get file path from tempfile instance
             temp_file_path = Path(tf.name)
             logger.info("Starting atomic write to %s", file_path)
-            json.dump(data, tf, indent=4)
+            json.dump(data, tf, indent=indent, ensure_ascii=ensure_ascii)
             tf.flush()
             os.fsync(tf.fileno())
 
@@ -70,21 +70,21 @@ def write_json_file(file_path: Path, data: dict | list) -> bool:
         return False
 
 
-def load_config(file_path: Path) -> dict | list | None:
+def load_config(file_path: Path, *, encoding: str = "utf-8") -> dict | list | str | int | float | bool | None:
     """Alias for read_json_file, specifically for configuration files."""
-    return read_json_file(file_path)
+    return read_json_file(file_path, encoding=encoding)
 
 
-def save_config(file_path: Path, config_data: dict | list) -> bool:
+def save_config(file_path: Path, config_data: dict | list | str | int | float | bool | None, *, encoding: str = "utf-8", indent: int | str | None = 4, ensure_ascii: bool = True) -> bool:
     """Alias for write_json_file, specifically for configuration files."""
-    return write_json_file(file_path, config_data)
+    return write_json_file(file_path, config_data, encoding=encoding, indent=indent, ensure_ascii=ensure_ascii)
 
 
-def load_cache(file_path: Path) -> dict | list | None:
+def load_cache(file_path: Path, *, encoding: str = "utf-8") -> dict | list | str | int | float | bool | None:
     """Alias for read_json_file, specifically for cache files."""
-    return read_json_file(file_path)
+    return read_json_file(file_path, encoding=encoding)
 
 
-def save_cache(file_path: Path, cache_data: dict | list) -> bool:
+def save_cache(file_path: Path, cache_data: dict | list | str | int | float | bool | None, *, encoding: str = "utf-8", indent: int | str | None = 4, ensure_ascii: bool = True) -> bool:
     """Alias for write_json_file, specifically for cache files."""
-    return write_json_file(file_path, cache_data)
+    return write_json_file(file_path, cache_data, encoding=encoding, indent=indent, ensure_ascii=ensure_ascii)
