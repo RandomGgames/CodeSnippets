@@ -114,21 +114,15 @@ def generate_unique_random_identifier(existing_identifiers: list, pattern: str =
             raise ValueError("Max retries must be greater than 0")
 
     logger.debug("Generating unique random identifier...")
-
     attempt = 0
-
     while True:
         attempt += 1
-
         generated_identifier = generate_random_identifier(pattern, character_sets)
-
         if generated_identifier not in existing_identifiers:
             return generated_identifier
-
         if max_retries is None:
-            logger.debug('Generated a duplicate ID "%s" on attempt %d', generated_identifier, attempt,)
+            logger.debug('Generated a duplicate ID "%s" on attempt %d', generated_identifier, attempt)
         else:
-            logger.debug('Generated a duplicate ID "%s" on attempt %d/%d', generated_identifier, attempt, max_retries,)
-
+            logger.debug('Generated a duplicate ID "%s" on attempt %d/%d', generated_identifier, attempt, max_retries)
             if attempt >= max_retries:
                 raise RuntimeError(f"Failed to generate a unique identifier after {max_retries} attempts")
