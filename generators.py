@@ -24,7 +24,7 @@ def generate_random_identifier(pattern: str = "*********", character_sets: dict[
             Repeated pattern characters generate independent random selections.
 
             For example, with character_sets={"a": "ABC", "d": "3456"}:
-                "aaaaa-ddddd" -> "ACBAB-54366"
+                pattern "aaaaa-ddddd" could generate "ACBAB-54366"
 
             The hyphen is preserved because it is not a defined character set.
             Defaults to 12 uppercase letters (using the default "A" character set).
@@ -67,7 +67,68 @@ def generate_random_identifier(pattern: str = "*********", character_sets: dict[
     return identifier
 
 
-if __name__ == "__main__":
+def generate_unique_random_identifier(existing_identifiers: list, pattern: str = "*********", character_sets: dict[str, str] | None = None, max_retries: int | None = 100) -> str:
+    """
+    Generate a random identifier that is guaranteed to be unique within a
+    provided collection of existing identifiers.
+
+    This function repeatedly generates identifiers using
+    generate_random_identifier() until one is produced that does not already
+    exist in existing_identifiers, or until the maximum number of attempts
+    is reached.
+
+    Args:
+        existing_identifiers (list): Collection of identifiers that must not
+            be duplicated. Membership is checked using the ``in`` operator.
+
+        pattern (str, optional): Defines the structure and format of the
+            generated identifier. Passed directly to
+            generate_random_identifier(). Defaults to 12 uppercase letters
+            and digits (using the default "*" character set).
+            For example, with character_sets={"a": "ABC", "d": "3456"}:
+                pattern "aaaaa-ddddd" could generate "ACBAB-54366"
+
+        character_sets (dict[str, str], optional): Mapping of pattern
+            characters to their allowed character sets. Passed directly to
+            generate_random_identifier(). Defaults to built-in character sets.
+
+        max_retries (int, optional): Maximum number of attempts to generate
+            a unique identifier before giving up. Defaults to 100.
+
+    Returns:
+        str: A randomly generated identifier that does not exist in
+        existing_identifiers.
+
+    Raises:
+        TypeError: Propagated from generate_random_identifier() if pattern
+            or character_sets have invalid types.
+        ValueError: Propagated from generate_random_identifier() if pattern
+            is empty, a character set is empty, or max_retries is less than 1.
+        RuntimeError: If a unique identifier cannot be generated within
+            max_retries attempts.
+    """
+    if max_retries is not None:
+        if not isinstance(max_retries, int):
+            raise TypeError(f"Max retries must be an integer or None, got {type(max_retries).__name__}")
+        if max_retries < 1:
+            raise ValueError("Max retries must be greater than 0")
+
+    logger.debug("Generating unique random identifier...")
+
+    attempt = 0
+
     while True:
-        print(generate_random_identifier())
-        input()
+        attempt += 1
+
+        generated_identifier = generate_random_identifier(pattern, character_sets)
+
+        if generated_identifier not in existing_identifiers:
+            return generated_identifier
+
+        if max_retries is None:
+            logger.debug('Generated a duplicate ID "%s" on attempt %d', generated_identifier, attempt,)
+        else:
+            logger.debug('Generated a duplicate ID "%s" on attempt %d/%d', generated_identifier, attempt, max_retries,)
+
+            if attempt >= max_retries:
+                raise RuntimeError(f"Failed to generate a unique identifier after {max_retries} attempts")
