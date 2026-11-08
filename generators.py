@@ -67,5 +67,7 @@ def generate_random_identifier(pattern: str = "*********", character_sets: dict[
     return identifier
 
 
-print(generate_random_identifier())
-input()
+if __name__ == "__main__":
+    while True:
+        print(generate_random_identifier())
+        input()
