@@ -38,6 +38,7 @@ def generate_random_identifier(pattern: str = "*********", character_sets: dict[
         TypeError: If pattern or character_sets have invalid types.
         ValueError: If pattern is empty or a character set is empty.
     """
+    logger.debug("Generating random identifier...")
     if not isinstance(pattern, str):
         raise TypeError(f"Pattern must be a string, got {type(pattern).__name__}")
     if not pattern:
@@ -107,6 +108,7 @@ def generate_unique_random_identifier(existing_identifiers: list, pattern: str =
         RuntimeError: If a unique identifier cannot be generated within
             max_retries attempts.
     """
+    logger.debug("Generating unique random identifier...")
     if max_retries is not None:
         if not isinstance(max_retries, int):
             raise TypeError(f"Max retries must be an integer or None, got {type(max_retries).__name__}")
