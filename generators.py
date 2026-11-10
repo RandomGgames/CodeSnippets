@@ -68,7 +68,7 @@ def generate_random_identifier(pattern: str = "*********", character_sets: dict[
     return identifier
 
 
-def generate_unique_random_identifier(existing_identifiers: list, pattern: str = "*********", character_sets: dict[str, str] | None = None, max_retries: int | None = 100) -> str:
+def generate_unique_random_identifier(existing_identifiers: set, pattern: str = "*********", character_sets: dict[str, str] | None = None, max_retries: int | None = 100) -> str:
     """
     Generate a random identifier that is guaranteed to be unique within a
     provided collection of existing identifiers.
