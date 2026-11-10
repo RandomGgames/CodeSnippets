@@ -24,7 +24,7 @@ def generate_random_identifier(pattern: str = "*********", character_sets: dict[
             Repeated pattern characters generate independent random selections.
 
             For example, with character_sets={"a": "ABC", "d": "3456"}:
-                pattern "aaaaa-ddddd" could generate "ACBAB-54366"
+                "aaaaa-ddddd" -> "ACBAB-54366"
 
             The hyphen is preserved because it is not a defined character set.
             Defaults to 12 uppercase letters (using the default "A" character set).
